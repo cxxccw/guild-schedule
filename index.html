@@ -1,78 +1,987 @@
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>公會排班表</title>
-  <style>
-    :root{--bg:#0f172a;--panel:#111827;--paper:#f8fafc;--grid:#d7deea;--text:#111827;--muted:#667085;--title:#312e81;--date:#4338ca;--day:#e0e7ff;--side:#f1f5f9;--note:#fce7f3;--job:#dbeafe;--blue:#4f46e5;--green:#059669}
-    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#24315f 0,var(--bg) 520px);color:#e5e7eb;font-family:system-ui,"Noto Sans TC",sans-serif}main{width:min(1480px,calc(100% - 16px));margin:8px auto 32px}
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.team-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-    button,input{font:inherit;border:1px solid #cbd5e1;border-radius:10px;padding:8px 10px;background:white}button{cursor:pointer;font-weight:700}.primary{background:var(--blue);color:white;border-color:var(--blue)}.good{background:var(--green);color:white;border-color:var(--green)}.danger{color:#b42318}.team-tabs button.active{background:#c7d2fe;color:#1e1b4b;border-color:#c7d2fe}
-    .status{color:#86efac;min-height:22px;margin-left:auto}.status.error{color:#fca5a5}.sheet-wrap{overflow:hidden;border:1px solid #334155;background:var(--paper);box-shadow:0 24px 70px #0004;border-radius:18px}
-    table{border-collapse:separate;border-spacing:0;width:100%;table-layout:fixed;color:var(--text)}th,td{border-right:1px solid var(--grid);border-bottom:1px solid var(--grid);height:32px;text-align:center;vertical-align:middle;padding:0}
-    input.cell{width:100%;height:100%;border:0;border-radius:0;background:transparent;text-align:center;font-weight:700;padding:3px 4px;font-size:clamp(11px,1.15vw,16px)}input.cell:focus{outline:2px solid #2563eb;outline-offset:-2px;background:#eef4ff}
-    .team-title{background:linear-gradient(135deg,#eef2ff,#ddd6fe);color:var(--title);font-size:clamp(13px,1.5vw,20px);font-weight:900}.date-title{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;font-size:clamp(18px,2.2vw,26px);font-weight:900}.head-name{background:#c7d2fe;font-size:clamp(13px,1.55vw,21px);font-weight:900;color:#1e1b4b}.head-day{background:var(--day);font-size:clamp(12px,1.45vw,20px);font-weight:800;color:#1e3a8a}.head-note{background:var(--note);font-size:clamp(12px,1.35vw,19px);font-weight:800;color:#831843}.head-job{background:var(--job);font-size:clamp(12px,1.35vw,19px);font-weight:800;color:#1e3a8a}.name-cell{background:var(--side)}.name-cell input{font-size:clamp(12px,1.25vw,18px);color:#111827}.time-cell{cursor:pointer;font-weight:800;background:#fff;font-size:clamp(11px,1.1vw,16px);word-break:break-word;line-height:1.15}.time-cell:hover{background:#eef4ff}.member-actions{display:flex;justify-content:center;gap:3px;padding:2px}.member-actions button{padding:2px 5px;font-size:clamp(10px,.9vw,12px)}.empty-row td{height:22px;background:#f8fafc}
-    .modal{position:fixed;inset:0;display:none;place-items:center;background:#0006;padding:18px}.modal.open{display:grid}.dialog{width:min(420px,100%);background:white;border-radius:16px;padding:18px;box-shadow:0 24px 80px #0005}.dialog h2{margin:0 0 12px}.dialog .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}.dialog label{display:grid;gap:5px;color:var(--muted);font-size:14px}.quick{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.right{display:flex;justify-content:flex-end;gap:8px}
-  </style>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐉 公會龍王團 出團時間表</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+:root{--bg:#0f1117;--surface:#181c27;--border:#272d40;--gold:#d4a843;--gold-dim:#7a5e22;--text:#cdd2e0;--muted:#5a6180;--green:#2ea86e;--green-bg:rgba(46,168,110,.15);--yellow:#d4a843;--yel-bg:rgba(212,168,67,.15);--red:#e05252;--red-bg:rgba(224,82,82,.18);--grey-bg:rgba(90,97,128,.12);}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 60px}
+.header{text-align:center;padding:24px 16px 0}
+.header h1{font-size:clamp(1.3rem,4vw,1.9rem);font-weight:700;color:var(--gold);letter-spacing:.05em}
+.header p{color:var(--muted);font-size:.8rem;margin-top:5px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;max-width:1200px;margin:14px auto 10px;padding:0 14px}
+.btn{padding:7px 14px;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer;border:1px solid;font-family:inherit;transition:all .15s}
+.btn-view{background:rgba(90,97,128,.15);border-color:var(--muted);color:var(--muted)}
+.btn-time{background:rgba(212,168,67,.12);border-color:var(--gold);color:var(--gold)}
+.btn-member{background:rgba(46,168,110,.1);border-color:#5de0a5;color:#5de0a5}
+.btn-save{background:rgba(91,143,214,.12);border-color:#5b8fd6;color:#8bb8f0}
+.btn-signup{background:rgba(212,168,67,.12);border-color:var(--gold);color:var(--gold)}
+.mode-badge{font-size:.7rem;padding:3px 10px;border-radius:10px;background:rgba(90,97,128,.15);color:var(--muted);border:1px solid var(--muted)}
+#syncStatus{font-size:.72rem;margin-left:auto;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:center;margin-bottom:10px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--muted)}
+.dot{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+/* week tabs */
+.week-tabs{display:flex;max-width:1200px;margin:0 auto 0;padding:0 14px;gap:8px}
+.week-tab{flex:1;padding:8px 12px;border-radius:7px 7px 0 0;border:1px solid var(--border);border-bottom:none;cursor:pointer;text-align:center;background:#0d1019;position:relative;user-select:none}
+.week-tab.active{background:var(--surface);border-color:var(--gold)}
+.week-tab .wtab-label{font-size:.63rem;color:var(--muted);text-transform:uppercase}
+.week-tab.active .wtab-label{color:var(--gold)}
+.week-tab .wtab-date{font-size:.78rem;font-weight:600;color:var(--text);margin-top:2px}
+.week-tab .wtab-sub{font-size:.6rem;color:var(--muted);margin-top:2px}
+.week-tab .wtab-badge{position:absolute;top:-7px;right:6px;font-size:.58rem;padding:1px 6px;border-radius:7px;background:var(--gold);color:#0f1117;font-weight:700;display:none}
+/* filter */
+.team-filter{display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:1200px;margin:0 auto 8px;padding:0 14px}
+.filter-label{font-size:.68rem;color:var(--muted)}
+.filter-btn{font-size:.68rem;padding:3px 10px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted);cursor:pointer;font-family:inherit;transition:all .12s}
+.filter-btn.active{background:rgba(212,168,67,.12);border-color:var(--gold);color:var(--gold)}
+/* table */
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);max-width:1200px;margin:0 auto}
+table{width:100%;border-collapse:collapse;font-size:.8rem;white-space:nowrap}
+thead th{padding:10px 8px;font-weight:500;color:var(--muted);text-align:center;border-bottom:2px solid var(--border);font-size:.73rem;text-transform:uppercase}
+thead th.day-th{color:var(--gold);font-weight:600}
+thead th:first-child{text-align:left;padding-left:14px;min-width:180px}
+thead th.note-th{min-width:140px}
+/* group rows */
+tr.group-row td{padding:0}
+.group-avail-bar{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:8px 12px;border-left:3px solid;background:#111420}
+.avail-label{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.cnt-badge{font-size:.65rem;padding:1px 7px;border-radius:8px;background:rgba(255,255,255,.06);color:var(--muted)}
+.cnt-warn{background:rgba(224,82,82,.15)!important;color:#e05252!important;font-weight:700}
+.raid-time-wrap{display:inline-flex;align-items:center;gap:5px;margin-left:6px}
+.raid-time-label{font-size:.68rem;color:var(--muted);white-space:nowrap}
+.raid-time-input{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:4px;color:var(--gold);font-size:.72rem;font-weight:500;padding:3px 8px;width:200px;outline:none;font-family:inherit}
+.avail-slot-tag{padding:2px 8px;border-radius:4px;font-size:.68rem;background:var(--green-bg);color:#5de0a5;border:1px solid rgba(46,168,110,.25);white-space:nowrap}
+/* sug */
+.sug-tr td{padding:0}
+.sug-wrap{border-left:3px solid;border-top:1px solid var(--border);background:#0d1019}
+.sug-toggle{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:7px 14px;font-size:.73rem;color:var(--muted);font-family:inherit;display:flex;align-items:center;gap:6px}
+.sug-toggle:hover{color:var(--text)}
+.sug-count{background:rgba(212,168,67,.15);color:var(--gold);border-radius:8px;padding:0 7px;font-size:.65rem}
+.sug-chevron{margin-left:auto;font-size:.7rem}
+.sug-body{padding:0 14px 10px}
+.sug-section-title{font-size:.73rem;font-weight:700;color:var(--muted);margin:6px 0 4px}
+.sug-avail-wrap{display:flex;flex-wrap:wrap;gap:4px}
+.sug-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:4px 0;border-top:1px solid #1a1e2e;font-size:.72rem}
+.sug-day{color:var(--gold);font-weight:600;white-space:nowrap;min-width:52px}
+b.name-red{color:#f08080;font-weight:600}
+b.num-green{color:#5de0a5;font-weight:600}
+b.time-gold{color:var(--gold);font-weight:600}
+/* member rows */
+tbody tr.member{border-bottom:1px solid #1e2235}
+tbody tr.member:hover{background:rgba(255,255,255,.02)}
+.cell-name{padding:9px 8px 9px 14px;vertical-align:middle}
+.name-wrap{display:flex;align-items:center;gap:6px}
+.ef{background:transparent;border:none;outline:none;font-family:'Noto Sans TC',sans-serif;color:var(--text);font-size:.8rem}
+.name-ef{font-weight:500;max-width:90px}
+.lv-ef{font-size:.65rem;color:var(--gold-dim);max-width:38px}
+.job-ef{font-size:.65rem;color:var(--muted);max-width:110px;padding:1px 5px;border-radius:3px;background:rgba(255,255,255,.05)}
+.gname-ef{font-weight:700;letter-spacing:.06em;font-size:.75rem}
+.edit-mode .ef{border-bottom:1px dashed rgba(212,168,67,.35);background:rgba(212,168,67,.04);border-radius:3px 3px 0 0;padding:1px 3px}
+.ef:focus{border-color:var(--gold)!important;background:rgba(212,168,67,.1)!important}
+/* cells */
+td.avail{text-align:center;padding:0;min-width:88px;vertical-align:middle}
+.cell-top{width:100%;cursor:pointer}
+.cell-inner{margin:3px;border-radius:5px;padding:5px 3px;font-size:.7rem;line-height:1.35;white-space:normal;word-break:keep-all}
+.cell-inner.all-day{background:var(--green-bg);color:#5de0a5}
+.cell-inner.partial{background:var(--yel-bg);color:#e8c56a}
+.cell-inner.no{background:var(--red-bg);color:#f08080}
+.cell-inner.empty{background:var(--red-bg);color:#f08080}
+.time-ef{background:transparent;border:none;outline:none;font-family:'Noto Sans TC',sans-serif;font-size:.68rem;color:inherit;width:100%;text-align:center;pointer-events:none}
+td.note-cell{padding:2px 8px 2px 4px;min-width:140px;max-width:200px;white-space:normal;word-break:break-all;font-size:.68rem;color:var(--muted);vertical-align:middle;line-height:1.4}
+.note-ef{background:transparent;border:none;outline:none;resize:none;font-family:'Noto Sans TC',sans-serif;font-size:.68rem;color:var(--muted);width:100%;min-height:28px;line-height:1.4}
+/* del/drag */
+.del-row-btn{display:none;width:20px;height:20px;border-radius:50%;background:var(--red-bg);border:1px solid rgba(224,82,82,.5);color:#f08080;font-size:.7rem;cursor:pointer;align-items:center;justify-content:center;flex-shrink:0;line-height:1;padding:0}
+.edit-mode .del-row-btn{display:inline-flex}
+.drag-handle{display:none;cursor:grab;color:var(--muted);font-size:.85rem;padding:0 2px;flex-shrink:0}
+.edit-mode .drag-handle{display:inline-flex;align-items:center}
+tr.dragging{opacity:.4}
+tr.drag-over{outline:2px solid var(--gold);outline-offset:-2px}
+/* time-only */
+.time-only .name-ef,.time-only .lv-ef,.time-only .job-ef,.time-only .note-ef{border-bottom:none!important;background:transparent!important;cursor:default}
+.time-only .del-row-btn{display:none!important}
+.time-only .drag-handle{display:none!important}
+.time-only .gname-ef{pointer-events:none!important;border-bottom:none!important;background:transparent!important}
+/* group collapse */
+.group-collapse-btn{background:none;border:none;cursor:pointer;padding:0 6px 0 0;color:var(--muted);font-size:.75rem;line-height:1}
+/* week locked */
+.week-locked-msg{text-align:center;padding:36px 20px;color:var(--muted)}
+.lock-icon{font-size:1.8rem;margin-bottom:8px}
+.lock-title{font-size:.85rem;color:#5a6180;margin-bottom:4px}
+.lock-sub{font-size:.72rem;color:#3a3f55}
+.lock-countdown{font-size:.75rem;color:var(--gold);margin-top:8px}
+/* panels */
+.panels-wrap{max-width:1200px;margin:16px auto 0;padding:0 14px}
+.suggestion-panel{background:var(--surface);border:1px solid;border-radius:8px;padding:12px 16px}
+.sug-title{font-size:.76rem;font-weight:700;letter-spacing:.05em;margin-bottom:6px}
+/* modals */
+.pw-title{font-size:.95rem;font-weight:600;color:#d4a843;margin-bottom:6px;letter-spacing:.05em}
+.pw-sub{font-size:.75rem;color:#5a6180;margin-bottom:18px}
+/* signup */
+.signup-field{margin-bottom:12px}
+.signup-label{display:block;font-size:.7rem;color:var(--muted);margin-bottom:5px;letter-spacing:.04em}
+.signup-input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:inherit;font-size:.82rem;padding:8px 11px;outline:none;box-sizing:border-box}
+.signup-input:focus{border-color:var(--gold)}
+.su-day-btn{padding:7px 6px;border-radius:5px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted);font-family:inherit;font-size:.72rem;cursor:pointer;text-align:center;transition:all .15s;line-height:1.3}
+.su-day-btn.active{border-color:var(--gold);background:rgba(212,168,67,.12);color:#f0d080;font-weight:600}
+.su-day-input{width:100%;margin-top:4px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:inherit;font-size:.68rem;padding:4px 6px;outline:none;display:none;box-sizing:border-box}
+.su-day-btn.active + .su-day-input{display:block}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.shake{animation:shake .35s ease}
+</style>
 </head>
 <body>
-<main>
-  <div class="toolbar">
-    <button id="addTeam" class="primary">新增團</button>
-    <button id="addMember" class="good">新增成員</button>
-    <button id="save" class="primary">儲存</button>
-    <button id="reload">重新載入</button>
-    <button id="deleteTeam" class="danger">刪除此團</button>
-    <span id="status" class="status"></span>
+<div class="header">
+  <h1>🐉 公會龍王團 出團時間表</h1>
+  <p id="dateRangeLabel">— 讀取日期中 —</p>
+</div>
+<div class="toolbar">
+  <span class="mode-badge" id="modeBadge">👁 檢視模式</span>
+  <button class="btn btn-signup" id="btnSignup" onclick="showSignupModal()">⚔️ 我要報名</button>
+  <button class="btn btn-view" id="btnView" onclick="setMode('view')" style="display:none">👁 檢視模式</button>
+  <button class="btn btn-time" id="btnTime" onclick="setMode('time')">✏️ 修改時間</button>
+  <button class="btn btn-member" id="btnMember" onclick="setMode('member')">👥 調整成員</button>
+  <button class="btn btn-save" id="saveBtn" onclick="saveData()" style="display:none">💾 儲存變更</button>
+  <span id="syncStatus" style="font-size:.72rem;margin-left:auto;color:#5a6180">⟳ 讀取中…</span>
+</div>
+<div class="legend">
+  <div class="legend-item"><div class="dot" style="background:var(--green)"></div>整天可</div>
+  <div class="legend-item"><div class="dot" style="background:var(--yellow)"></div>部分時段可</div>
+  <div class="legend-item"><div class="dot" style="background:var(--red)"></div>不可 ✗</div>
+  <div class="legend-item"><div class="dot" style="background:#333a52"></div>未填寫</div>
+</div>
+<div class="week-tabs">
+  <div class="week-tab active" id="wtab-this" onclick="switchWeek('this')">
+    <div class="wtab-label">本週</div>
+    <div class="wtab-date" id="wtab-this-date">—</div>
+    <div class="wtab-sub" id="wtab-this-sub"></div>
   </div>
-  <div id="teamTabs" class="team-tabs"></div>
-  <div class="sheet-wrap"><table id="sheet"></table></div>
-</main>
+  <div class="week-tab" id="wtab-next" onclick="switchWeek('next')">
+    <span class="wtab-badge" id="wtab-next-badge">填寫中</span>
+    <div class="wtab-label">下週</div>
+    <div class="wtab-date" id="wtab-next-date">—</div>
+    <div class="wtab-sub" id="wtab-next-sub"></div>
+  </div>
+</div>
+<div class="team-filter" id="teamFilter">
+  <span class="filter-label">顯示：</span>
+</div>
+<div class="table-wrap">
+<table id="mainTable">
+  <thead><tr>
+    <th>成員</th>
+    <th class="day-th" id="dh0">—</th><th class="day-th" id="dh1">—</th>
+    <th class="day-th" id="dh2">—</th><th class="day-th" id="dh3">—</th>
+    <th class="day-th" id="dh4">—</th><th class="day-th" id="dh5">—</th>
+    <th class="day-th" id="dh6">—</th>
+    <th class="note-th">備註</th>
+  </tr></thead>
+  <tbody id="tableBody"></tbody>
+</table>
+</div>
+<div class="panels-wrap"><div id="thirdTeamPanel"></div></div>
 
-<div id="timeModal" class="modal">
-  <div class="dialog">
-    <h2>設定時間</h2>
-    <label>顯示文字<input id="timeText" placeholder="例如：19:00後、10:00-24:00、整天"></label>
-    <div class="row">
-      <label>開始時間<input id="startTime" type="time"></label>
-      <label>結束時間<input id="endTime" type="time"></label>
+<!-- Password Modal -->
+<div id="pwModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+  <div id="pwBox" style="background:#181c27;border:1px solid #2a2a42;border-radius:12px;padding:32px 28px;width:300px;max-width:90vw;text-align:center">
+    <div style="font-size:1.8rem;margin-bottom:12px">🔐</div>
+    <div class="pw-title" id="pwTitle">輸入密碼</div>
+    <div class="pw-sub" id="pwSub">此操作需要密碼</div>
+    <input id="pwInput" type="password" placeholder="••••" style="width:100%;background:#0f1117;border:1px solid #272d40;border-radius:6px;color:#cdd2e0;font-size:1.1rem;padding:10px 14px;outline:none;text-align:center;letter-spacing:.3em;font-family:inherit;box-sizing:border-box" onkeydown="if(event.key==='Enter')submitPw();if(event.key==='Escape')closePw()">
+    <div id="pwError" style="display:none;color:#f08080;font-size:.72rem;margin-top:8px">密碼錯誤</div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button onclick="closePw()" style="flex:1;padding:9px;border-radius:6px;border:1px solid #272d40;background:none;color:#5a6180;cursor:pointer;font-family:inherit;font-size:.8rem">取消</button>
+      <button onclick="submitPw()" style="flex:1;padding:9px;border-radius:6px;border:1px solid #d4a843;background:rgba(212,168,67,.12);color:#d4a843;cursor:pointer;font-family:inherit;font-size:.8rem;font-weight:600">確認</button>
     </div>
-    <div class="quick">
-      <button data-quick="整天">整天</button>
-      <button data-quick="19:00後">晚上7點後</button>
-      <button data-quick="21:00後">21:00後</button>
-      <button data-quick="">清空</button>
+  </div>
+</div>
+
+<!-- Clear Modal -->
+<div id="clearModal" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:300">
+  <div style="background:#181c27;border:1px solid var(--gold);border-radius:10px;padding:16px 20px;width:360px;max-width:92vw;box-shadow:0 8px 32px rgba(0,0,0,.6)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <span>🗑️</span><div id="clearTitle" style="font-size:.82rem;font-weight:600;color:#d4a843"></div>
     </div>
-    <div class="right"><button id="cancelTime">取消</button><button id="applyTime" class="primary">套用</button></div>
+    <div id="clearDesc" style="font-size:.72rem;color:#5a6180;margin-bottom:12px;line-height:1.6;white-space:pre-wrap"></div>
+    <div style="display:flex;gap:8px">
+      <button id="clearNoBtn" style="flex:1;padding:7px;border-radius:6px;border:1px solid #e05252;background:rgba(224,82,82,.15);color:#f08080;cursor:pointer;font-family:inherit;font-size:.75rem;font-weight:700">✕ 否，只改我的</button>
+      <button id="clearYesBtn" style="flex:1;padding:7px;border-radius:6px;border:1px solid #3a3a52;background:rgba(255,255,255,.05);color:#9a9ab0;cursor:pointer;font-family:inherit;font-size:.75rem">✅ 是，清除全團</button>
+    </div>
+  </div>
+</div>
+
+<!-- Signup Modal -->
+<div id="signupModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+  <div style="background:#181c27;border:1px solid #d4a843;border-radius:12px;padding:28px 24px;width:380px;max-width:92vw;max-height:90vh;overflow-y:auto">
+    <div style="font-size:1.4rem;text-align:center;margin-bottom:4px">⚔️</div>
+    <div style="font-size:.95rem;font-weight:700;color:#d4a843;text-align:center;margin-bottom:4px">我要報名</div>
+    <div style="font-size:.72rem;color:#5a6180;text-align:center;margin-bottom:20px">填寫完畢後資訊將加入散人候補</div>
+    <div class="signup-field"><label class="signup-label">遊戲名稱</label><input id="su-name" class="signup-input" placeholder="你的角色名稱" maxlength="20"></div>
+    <div style="display:flex;gap:10px">
+      <div class="signup-field" style="flex:1"><label class="signup-label">等級</label><input id="su-lv" class="signup-input" placeholder="e.g. 170" type="number"></div>
+      <div class="signup-field" style="flex:2"><label class="signup-label">職業</label><input id="su-job" class="signup-input" placeholder="e.g. 主教"></div>
+    </div>
+    <div class="signup-label" style="margin-top:14px;margin-bottom:6px">可參加時段</div>
+    <div id="su-days" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div>
+    <div id="su-err" style="display:none;color:#f08080;font-size:.72rem;margin-top:10px;text-align:center"></div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button onclick="closeSignupModal()" style="flex:1;padding:9px;border-radius:6px;border:1px solid #272d40;background:none;color:#5a6180;cursor:pointer;font-family:inherit;font-size:.8rem">取消</button>
+      <button onclick="submitSignup()" style="flex:2;padding:9px;border-radius:6px;border:1px solid #d4a843;background:rgba(212,168,67,.15);color:#d4a843;cursor:pointer;font-family:inherit;font-size:.8rem;font-weight:700">⚔️ 確認報名</button>
+    </div>
   </div>
 </div>
 
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycbw_CwG4rz3W1XpWSMmWaEJtpIhtxxHEqTtOWwGbzIN4Btl6eh9MVW8bhIVSY3TR9ME/exec";
-const $=id=>document.getElementById(id);
-const DEFAULT_DAYS=["禮拜四","禮拜五","禮拜六","禮拜日","禮拜一","禮拜二","禮拜三"];
-let state={teams:[]},activeTeam=0,editingCell=null;
-function newId(){return crypto.randomUUID?crypto.randomUUID():String(Date.now())}
-function defaultTeam(name="阿罵團"){return{id:newId(),title:name,dateRange:"6/18-6/24",days:[...DEFAULT_DAYS],members:[{name:"阿罵",job:"標",level:"162",note:"",times:["","","","","","",""]},{name:"木木",job:"冰雷",level:"174",note:"",times:["","","10:00-24:00","10:00-24:00","","",""]}]}}
-function status(text,bad=false){$("status").textContent=text;$("status").classList.toggle("error",bad)}
-async function api(action,data={}){const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,...data})});const out=await r.json();if(!out.ok)throw Error(out.error||"資料處理失敗");return out}
-function team(){if(!state.teams.length)state.teams.push(defaultTeam());if(!state.teams[activeTeam])activeTeam=0;return state.teams[activeTeam]}
-function renderTabs(){$("teamTabs").innerHTML=state.teams.map((t,i)=>`<button class="${i===activeTeam?"active":""}" data-team="${i}">${esc(t.title||"未命名團")}</button>`).join("");document.querySelectorAll("[data-team]").forEach(b=>b.onclick=()=>{activeTeam=Number(b.dataset.team);render()})}
-function render(){const t=team();renderTabs();$("sheet").innerHTML=`<colgroup><col style="width:10%"><col style="width:7%"><col style="width:5.5%">${t.days.map(()=>"<col style='width:9.2%'>").join("")}<col style="width:12%"><col style="width:5%"></colgroup><tr><th class="team-title" colspan="3"><input class="cell" data-field="title" value="${attr(t.title)}"></th><th class="date-title" colspan="${t.days.length}"><input class="cell" data-field="dateRange" value="${attr(t.dateRange)}"></th><th colspan="2"></th></tr><tr><th class="head-name">名稱</th><th class="head-job">職業</th><th class="head-job">等級</th>${t.days.map((d,i)=>`<th class="head-day"><input class="cell" data-day="${i}" value="${attr(d)}"></th>`).join("")}<th class="head-note">★備註</th><th class="head-job">操作</th></tr>${t.members.map((m,r)=>`<tr><td class="name-cell"><input class="cell" data-row="${r}" data-key="name" value="${attr(m.name)}"></td><td><input class="cell" data-row="${r}" data-key="job" value="${attr(m.job||"")}"></td><td><input class="cell" data-row="${r}" data-key="level" value="${attr(m.level||"")}"></td>${t.days.map((_,c)=>`<td class="time-cell" data-row="${r}" data-col="${c}">${esc((m.times||[])[c]||"")}</td>`).join("")}<td><input class="cell" data-row="${r}" data-key="note" value="${attr(m.note||"")}"></td><td><div class="member-actions"><button data-up="${r}">↑</button><button data-down="${r}">↓</button><button class="danger" data-delete="${r}">刪</button></div></td></tr>`).join("")}<tr class="empty-row">${"<td></td>".repeat(t.days.length+5)}</tr>`;bind()}
-function bind(){const t=team();document.querySelectorAll("[data-field]").forEach(i=>i.oninput=()=>{t[i.dataset.field]=i.value;renderTabs()});document.querySelectorAll("[data-day]").forEach(i=>i.oninput=()=>t.days[Number(i.dataset.day)]=i.value);document.querySelectorAll("[data-key]").forEach(i=>i.oninput=()=>t.members[Number(i.dataset.row)][i.dataset.key]=i.value);document.querySelectorAll(".time-cell").forEach(c=>c.onclick=()=>openTime(Number(c.dataset.row),Number(c.dataset.col)));document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{if(confirm("確定刪除此成員？")){t.members.splice(Number(b.dataset.delete),1);render()}});document.querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>move(Number(b.dataset.up),-1));document.querySelectorAll("[data-down]").forEach(b=>b.onclick=()=>move(Number(b.dataset.down),1))}
-function move(i,d){const t=team(),n=i+d;if(n<0||n>=t.members.length)return;[t.members[i],t.members[n]]=[t.members[n],t.members[i]];render()}
-function addMember(){team().members.push({name:"新成員",job:"",level:"",note:"",times:["","","","","","",""]});render()}
-function addTeam(){const name=prompt("新團名稱","新團");if(!name)return;state.teams.push(defaultTeam(name));activeTeam=state.teams.length-1;render()}
-function deleteTeam(){if(state.teams.length<=1)return status("至少需要保留一個團。",true);if(confirm("確定刪除此團？")){state.teams.splice(activeTeam,1);activeTeam=Math.max(0,activeTeam-1);render()}}
-function openTime(row,col){editingCell={row,col};const value=(team().members[row].times||[])[col]||"";$("timeText").value=value;$("startTime").value="";$("endTime").value="";const m=value.match(/^(\d{2}:\d{2})(?:-(\d{2}:\d{2}))?/);if(m){$("startTime").value=m[1];$("endTime").value=m[2]||""}$("timeModal").classList.add("open")}
-function closeTime(){$("timeModal").classList.remove("open");editingCell=null}
-function applyTime(){if(!editingCell)return;let text=$("timeText").value.trim();const s=$("startTime").value,e=$("endTime").value;if(!text&&s&&e)text=`${s}-${e}`;if(!text&&s)text=`${s}後`;team().members[editingCell.row].times[editingCell.col]=text;closeTime();render()}
-async function load(){status("載入中...");try{const r=await api("loadSchedule");state=r.schedule&&r.schedule.teams?r.schedule:{teams:[defaultTeam()]};activeTeam=0;render();status("已載入。")}catch(e){state={teams:[defaultTeam()]};render();status(e.message,true)}}
-async function save(){status("儲存中...");try{await api("saveSchedule",{schedule:state});status("已儲存。")}catch(e){status(e.message,true)}}
-function esc(v){return String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
-function attr(v){return esc(v)}
-$("addMember").onclick=addMember;$("addTeam").onclick=addTeam;$("deleteTeam").onclick=deleteTeam;$("save").onclick=save;$("reload").onclick=load;$("cancelTime").onclick=closeTime;$("applyTime").onclick=applyTime;document.querySelectorAll("[data-quick]").forEach(b=>b.onclick=()=>{$("timeText").value=b.dataset.quick});$("startTime").oninput=()=>{if($("startTime").value&&!$("timeText").value)$("timeText").value=`${$("startTime").value}後`};$("endTime").oninput=()=>{if($("startTime").value&&$("endTime").value)$("timeText").value=`${$("startTime").value}-${$("endTime").value}`};load();
+// ── API ───────────────────────────────────────────────────────────────────────
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_CwG4rz3W1XpWSMmWaEJtpIhtxxHEqTtOWwGbzIN4Btl6eh9MVW8bhIVSY3TR9ME/exec';
+let _localVersion = 0;
+
+// ── Week helpers ──────────────────────────────────────────────────────────────
+function getThisThursday() {
+  const now = new Date(), dow = now.getDay();
+  const d = new Date(now);
+  d.setHours(0,0,0,0);
+  d.setDate(now.getDate() - (dow+7-4)%7);
+  return d;
+}
+function getNextThursday() {
+  const d = getThisThursday();
+  d.setDate(d.getDate()+7);
+  return d;
+}
+function isNextWeekUnlocked() {
+  const dow = new Date().getDay();
+  return dow===6||dow===0||dow===1||dow===2||dow===3;
+}
+function msToCountdown(ms) {
+  const h=Math.floor(ms/3600000), mn=Math.floor((ms%3600000)/60000);
+  if(h>24) return Math.floor(h/24)+'天後';
+  if(h>0) return h+'小時'+mn+'分後';
+  return mn+'分後';
+}
+function getWeekDaysFrom(thu) {
+  const N=['日','一','二','三','四','五','六'], days=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(thu); d.setDate(thu.getDate()+i);
+    const mm=String(d.getMonth()+1).padStart(2,'0');
+    const dd=String(d.getDate()).padStart(2,'0');
+    days.push(mm+'/'+dd+' '+N[d.getDay()]);
+  }
+  return days;
+}
+function computeWeekDays(){ return getWeekDaysFrom(getThisThursday()); }
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let DAYS_LABEL = [];
+let currentWeekView = 'this';
+let appMode = 'view';
+let _visibleGroups = null;
+let _clearPromptDone = false;
+let _pendingUnlock = null, _pendingCycle = null, _pendingChange = null;
+let _isFirstClearer = false;
+let _activePlayer = null;
+
+// ── Data ──────────────────────────────────────────────────────────────────────
+let groups = [
+  {
+    name:"白毛團", colorIdx:0,
+    members:[
+      { name:"GiByMo",      lv:"173", job:"黑騎士",
+        days:["partial","partial","all-day","all-day","no","no","no"],
+        times:["晚上7點後","晚上7點後","整天","整天","✗","✗","✗"],
+        note:"06/11 & 06/12 22:00–22:30集合（3–4場）" },
+      { name:"攸咪c",        lv:"171", job:"主教",
+        days:["partial","partial","partial","partial","partial","partial","partial"],
+        times:["19:00–01:00","19:00–01:00","15:00–02:00","15:00–01:00","19:00–01:00","19:00–01:00","19:00–01:00"], note:"" },
+      { name:"槍神好號",      lv:"171", job:"槍神",
+        days:["partial","no","empty","partial","partial","partial","partial"],
+        times:["22:30後可","✗","還不一定","22:30後可","22:30後可","22:30後可","22:30後可"], note:"" },
+      { name:"怕今生是朕",    lv:"169", job:"聖騎士",
+        days:["all-day","all-day","partial","all-day","all-day","all-day","all-day"],
+        times:["都可以","都可以","23:15後","都可以","都可以","都可以","都可以"], note:"" },
+      { name:"發發發發發",    lv:"169", job:"箭神",
+        days:["partial","partial","partial","partial","partial","partial","partial"],
+        times:["晚上7點後","晚上7點後","晚上7點後","避開另一團","晚上7點後","晚上7點後","晚上7點後"], note:"" },
+      { name:"coco",         lv:"170", job:"大魔導士(冰/雷)",
+        days:["partial","partial","all-day","all-day","no","no","no"],
+        times:["晚上7點後","晚上7點後","整天","整天","✗","✗","✗"], note:"" },
+      { name:"蜂窩性祖師爺",  lv:"168", job:"拳霸",
+        days:["partial","partial","no","no","partial","partial","partial"],
+        times:["22:30後","22:30後","✗","✗","22:30後","22:30後","22:30後"], note:"" },
+      { name:"Wenjun",       lv:"167", job:"黑騎士",
+        days:["partial","empty","partial","partial","partial","partial","partial"],
+        times:["22:30後","—","22:30後","22:30後","22:30後","22:30後","22:30後"], note:"" },
+      { name:"WeiHao",       lv:"165", job:"聖騎士",
+        days:["partial","partial","all-day","all-day","no","no","no"],
+        times:["20:30後","20:30後","整天","整天","✗","✗","✗"], note:"" },
+      { name:"城堡的城",      lv:"165", job:"神射手",
+        days:["partial","partial","partial","partial","partial","partial","partial"],
+        times:["20:00後","20:00後","20:00後","20:00後","20:00後","20:00後","20:00後"], note:"" },
+      { name:"館長",          lv:"162", job:"暗影神偷",
+        days:["partial","partial","partial","partial","partial","partial","partial"],
+        times:["19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00"], note:"" },
+      { name:"黑咖啡超苦",    lv:"160", job:"暗影神偷",
+        days:["partial","partial","partial","partial","partial","all-day","all-day"],
+        times:["22:30前","22:30前","22:30前","22:30前","22:30前","整天","整天"], note:"" },
+    ]
+  },
+  {
+    name:"阿罵團", colorIdx:1,
+    members:[
+      { name:"阿罵",         lv:"",  job:"夜使者",
+        days:["partial","partial","partial","all-day","partial","partial","partial"],
+        times:["19:00–23:00","19:00–23:00","19:00後","整日","19:00–23:00","19:00–23:00","19:00–23:00"], note:"" },
+      { name:"世俗",         lv:"",  job:"神射手",
+        days:["partial","partial","partial","all-day","partial","partial","partial"],
+        times:["19:00–23:00","19:00–23:00","暫定晚上可","整日","19:00–23:00","19:00–23:00","19:00–23:00"], note:"" },
+      { name:"木木",         lv:"",  job:"大魔導士(冰/雷)",
+        days:["no","no","partial","partial","no","no","no"],
+        times:["✗","✗","12:00–23:00","12:00–23:00","✗","✗","✗"], note:"" },
+      { name:"30CM",        lv:"",  job:"拳霸",
+        days:["no","no","all-day","all-day","no","no","no"],
+        times:["✗","✗","整天","整天","✗","✗","✗"], note:"" },
+      { name:"怕今生是朕",   lv:"",  job:"箭神",
+        days:["all-day","all-day","partial","all-day","no","no","no"],
+        times:["整天","整天","23:15後","整天","✗","✗","✗"], note:"" },
+      { name:"大哥",         lv:"",  job:"主教",
+        days:["partial","partial","all-day","all-day","partial","partial","partial"],
+        times:["19:00–23:00","19:00後","整天","整天","19:00–23:00","19:00–23:00","19:00–23:00"], note:"" },
+      { name:"發發發",       lv:"",  job:"黑騎士",
+        days:["partial","partial","partial","all-day","partial","partial","partial"],
+        times:["19:00後","19:00後","19:00後","整天","19:00後","19:00後","19:00後"], note:"" },
+      { name:"大牛",         lv:"",  job:"聖騎士",
+        days:["partial","no","partial","partial","partial","partial","partial"],
+        times:["21:00後","✗","19:00後","19:00前","21:00後","21:00後","21:00後"], note:"" },
+      { name:"拉爾",         lv:"",  job:"聖騎士",
+        days:["partial","partial","partial","all-day","partial","partial","partial"],
+        times:["19:00後","19:00後","20:00後","整天","19:00後","19:00後","19:00後"], note:"" },
+      { name:"GeniusWEN",  lv:"",  job:"黑騎士",
+        days:["partial","partial","all-day","all-day","partial","partial","partial"],
+        times:["20:00後","20:00後","整天","整天","20:00後","20:00後","20:00後"], note:"" },
+      { name:"海鮮",         lv:"",  job:"暗影神偷",
+        days:["partial","partial","no","no","partial","partial","partial"],
+        times:["19:00–23:00","19:00–23:00","✗","✗","19:00–23:00","19:00–23:00","19:00–23:00"], note:"" },
+    ]
+  },
+  {
+    name:"第三團", colorIdx:2,
+    raidTime:"",
+    members:[
+      { name:"阿彥",          lv:"175", job:"英雄",
+        days:["empty","empty","empty","empty","empty","empty","empty"],
+        times:["—","—","—","—","—","—","—"], note:"",
+        nextWeek:{ days:["partial","partial","partial","partial","partial","partial","partial"],
+                   times:["21:00後","21:00後","21:00後","21:00後","21:00後","21:00後","21:00後"] } },
+      { name:"泰泰",          lv:"160", job:"黑騎",
+        days:["empty","empty","empty","empty","empty","empty","empty"],
+        times:["—","—","—","—","—","—","—"], note:"",
+        nextWeek:{ days:["partial","partial","partial","partial","partial","partial","partial"],
+                   times:["21:00後","21:00後","21:00後","21:00後","21:00後","21:00後","21:00後"] } },
+      { name:"雪雪",          lv:"166", job:"冰雷",
+        days:["empty","empty","empty","empty","empty","empty","empty"],
+        times:["—","—","—","—","—","—","—"], note:"",
+        nextWeek:{ days:["partial","partial","partial","partial","partial","partial","partial"],
+                   times:["21:00後","21:00後","21:00後","21:00後","21:00後","21:00後","21:00後"] } },
+      { name:"A17",          lv:"175", job:"標賊",
+        days:["empty","empty","empty","empty","empty","empty","empty"],
+        times:["—","—","—","—","—","—","—"], note:"不能打原因要到00:30下班",
+        nextWeek:{ days:["no","no","no","all-day","no","all-day","all-day"],
+                   times:["✗","✗","✗","整天","✗","整天","整天"] } },
+      { name:"火龍狗",         lv:"170", job:"黑騎",
+        days:["empty","empty","empty","empty","empty","empty","empty"],
+        times:["—","—","—","—","—","—","—"], note:"" },
+      { name:"邪惡氣息",        lv:"168", job:"弓",
+        days:["empty","empty","empty","empty","empty","empty","empty"],
+        times:["—","—","—","—","—","—","—"], note:"" },
+      { name:"五條FRINEND",   lv:"176", job:"刀賊",
+        days:["empty","empty","empty","empty","empty","empty","empty"],
+        times:["—","—","—","—","—","—","—"], note:"",
+        nextWeek:{ days:["partial","partial","no","all-day","partial","partial","partial"],
+                   times:["22:30後","22:30後","✗","整天","22:30後","22:30後","22:30後"] } },
+      { name:"五條",          lv:"170", job:"黑騎",
+        days:["empty","empty","empty","empty","empty","empty","empty"],
+        times:["—","—","—","—","—","—","—"], note:"",
+        nextWeek:{ days:["partial","partial","no","all-day","partial","partial","partial"],
+                   times:["22:30後","22:30後","✗","整天","22:30後","22:30後","22:30後"] } },
+      { name:"RUBY",         lv:"170", job:"弩",
+        days:["empty","empty","empty","empty","empty","empty","empty"],
+        times:["—","—","—","—","—","—","—"], note:"若有多休可以提早打",
+        nextWeek:{ days:["partial","partial","partial","partial","partial","partial","partial"],
+                   times:["23:00後","23:00後","23:00後","23:00後","23:00後","23:00後","23:00後"] } },
+      { name:"天馬流星拳",       lv:"159", job:"拳霸",
+        days:["empty","empty","empty","empty","empty","empty","empty"],
+        times:["—","—","—","—","—","—","—"], note:"" },
+      { name:"前哥",          lv:"163", job:"主教",
+        days:["empty","empty","empty","empty","empty","empty","empty"],
+        times:["—","—","—","—","—","—","—"], note:"" },
+      { name:"弘耀",          lv:"166", job:"刀(菸30)",
+        days:["empty","empty","empty","empty","empty","empty","empty"],
+        times:["—","—","—","—","—","—","—"], note:"六能提早",
+        nextWeek:{ days:["no","partial","partial","no","no","partial","no"],
+                   times:["✗","16:00–23:00","16:00後","✗","✗","16:00後","✗"] } },
+      { name:"WEI",          lv:"158", job:"刀(菸30)",
+        days:["empty","empty","empty","empty","empty","empty","empty"],
+        times:["—","—","—","—","—","—","—"], note:"" },
+    ]
+  },
+  {
+    name:"散人", colorIdx:3,
+    members:[]
+  }
+];
+
+const DEFAULT_GROUPS = JSON.parse(JSON.stringify(groups));
+const GROUP_COLORS = ['#5b8fd6','#c47ed8','#7ed8b8','#e8a84a'];
+const TYPES = ['empty','partial','all-day','no'];
+const TYPE_LABELS = {'all-day':'整天','partial':'部分可','no':'✗ 不可','empty':'—'};
+
+// ── Time parsing ──────────────────────────────────────────────────────────────
+function parseTimeRange(t) {
+  if(!t||t==='—'||t==='✗') return null;
+  const s=t.replace(/：/g,':').replace(/[～~]/g,'–').trim();
+  if(/整天|整日|都可以|可/.test(s)) return {start:0,end:null,crossMidnight:false};
+  if(/避開|不一定|暫定/.test(s)) return null;
+  function hm(str) {
+    str=(str||'').trim();
+    let m=str.match(/^(\d{1,2}):(\d{2})/); if(m) return parseInt(m[1])*60+parseInt(m[2]);
+    m=str.match(/^(\d{4})$/); if(m) return parseInt(str.slice(0,2))*60+parseInt(str.slice(2));
+    m=str.match(/晚[上]?(\d+)點(半)?/); if(m){let h=parseInt(m[1]);if(h<12)h+=12;return h*60+(m[2]?30:0);}
+    m=str.match(/下午(\d+)點(半)?/); if(m){let h=parseInt(m[1]);if(h<12)h+=12;return h*60+(m[2]?30:0);}
+    return null;
+  }
+  const bm=s.match(/^(.+?)\s*前$/);
+  if(bm){const v=hm(bm[1]);if(v!==null)return{start:0,end:v,crossMidnight:false};}
+  const rm=s.match(/(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})/);
+  if(rm){const st=hm(rm[1]);let en=hm(rm[2]);if(st!==null&&en!==null){const cross=en<st;if(cross)en+=24*60;return{start:st,end:en,crossMidnight:cross};}}
+  const v=hm(s); if(v!==null) return{start:v,end:null,crossMidnight:false};
+  return null;
+}
+function minsToStr(m){const h=Math.floor(m/60)%24,mn=m%60;return String(h).padStart(2,'0')+':'+String(mn).padStart(2,'0');}
+function windowToStr(w){
+  if(!w) return null;
+  if(w.start===0&&!w.end) return '整天';
+  if(!w.end) return minsToStr(w.start)+' 後';
+  return minsToStr(w.start)+'–'+(w.end>=1440?'翌日':'')+minsToStr(w.end);
+}
+function overlapWindow(members,di){
+  const filled=members.filter(m=>m.days[di]!=='empty'&&m.days[di]!=='no');
+  if(!filled.length||members.some(m=>m.days[di]==='no'||m.days[di]==='empty')) return null;
+  let ws=0,we=null;
+  for(const m of filled){
+    const r=parseTimeRange(m.times[di]);
+    if(!r) continue;
+    if(r.start>ws) ws=r.start;
+    if(r.end!==null&&(we===null||r.end<we)) we=r.end;
+  }
+  if(we!==null&&ws>=we) return null;
+  return{start:ws,end:we};
+}
+function getGroupAvail(members){
+  return DAYS_LABEL.map((_,di)=>{const w=overlapWindow(members,di);return w?{timeStr:windowToStr(w),window:w}:null;});
+}
+function getSuggestions(members){
+  const sugs=[];
+  DAYS_LABEL.forEach((day,di)=>{
+    const filled=members.filter(m=>m.days[di]!=='empty');
+    if(!filled.length) return;
+    const blockers=filled.filter(m=>m.days[di]==='no'||m.days[di]==='empty');
+    const canGo=filled.filter(m=>m.days[di]!=='no'&&m.days[di]!=='empty');
+    if(!blockers.length||blockers.length>3||canGo.length<2) return;
+    let ws=0,we=null;
+    for(const m of canGo){const r=parseTimeRange(m.times[di]);if(!r)continue;if(r.start>ws)ws=r.start;if(r.end!==null&&(we===null||r.end<we))we=r.end;}
+    if(we!==null&&ws>=we) return;
+    sugs.push({day,blockers:blockers.map(m=>m.name),available:canGo.length,window:windowToStr({start:ws,end:we})});
+  });
+  return sugs;
+}
+function getFilledMembers(gi){
+  return groups[gi].members.filter(m=>{
+    const d=currentWeekView==='next'?(m.nextWeek||{days:[]}).days:m.days;
+    return d.some(x=>x!=='empty');
+  });
+}
+function getMemberWeekData(m,week){
+  if(week==='next'){if(!m.nextWeek)m.nextWeek={days:Array(7).fill('empty'),times:Array(7).fill('—')};return m.nextWeek;}
+  return{days:m.days,times:m.times};
+}
+
+// ── Week tabs UI ──────────────────────────────────────────────────────────────
+function updateWeekTabs(){
+  const thu=getThisThursday(),nxt=getNextThursday();
+  const N=['日','一','二','三','四','五','六'];
+  function wr(d){const e=new Date(d);e.setDate(d.getDate()+6);const fmt=x=>(x.getMonth()+1)+'/'+x.getDate()+'('+N[x.getDay()]+')';return fmt(d)+'—'+fmt(e);}
+  document.getElementById('wtab-this-date').textContent=wr(thu);
+  document.getElementById('wtab-next-date').textContent=wr(nxt);
+  document.getElementById('wtab-this-sub').textContent='剩 '+msToCountdown(nxt-new Date())+' 結束';
+  const unlocked=isNextWeekUnlocked();
+  const badge=document.getElementById('wtab-next-badge');
+  if(unlocked){badge.style.display='';document.getElementById('wtab-next-sub').textContent='開放填寫中';}
+  else{badge.style.display='none';const ns=new Date();while(ns.getDay()!==6||ns<=new Date()){ns.setDate(ns.getDate()+1);}document.getElementById('wtab-next-sub').textContent=msToCountdown(ns-new Date())+'後開放';}
+}
+function switchWeek(w){
+  currentWeekView=w;
+  document.getElementById('wtab-this').classList.toggle('active',w==='this');
+  document.getElementById('wtab-next').classList.toggle('active',w==='next');
+  DAYS_LABEL=getWeekDaysFrom(w==='next'?getNextThursday():getThisThursday());
+  updateDateHeader(); buildTable();
+}
+function updateDateHeader(){
+  const thu=currentWeekView==='next'?getNextThursday():getThisThursday();
+  DAYS_LABEL=getWeekDaysFrom(thu);
+  const first=DAYS_LABEL[0].replace(' ','（')+')';
+  const last=DAYS_LABEL[6].replace(' ','（')+')';
+  const el=document.getElementById('dateRangeLabel');
+  if(el) el.innerHTML=first+'—'+last+'&nbsp;·&nbsp; 龍王 / 炎魔 / 困拉';
+  DAYS_LABEL.forEach((d,i)=>{
+    const th=document.getElementById('dh'+i);
+    if(!th) return;
+    const parts=d.split(' ');
+    th.innerHTML=parts[0]+'<br><span style="font-weight:300;font-size:.68rem">'+parts[1]+'</span>';
+  });
+}
+
+// ── Team filter ───────────────────────────────────────────────────────────────
+function buildTeamFilter(){
+  const bar=document.getElementById('teamFilter');
+  if(!bar) return;
+  bar.innerHTML='<span class="filter-label">顯示：</span>';
+  // "全部" button
+  const allBtn=document.createElement('button');
+  allBtn.className='filter-btn'+(_visibleGroups===null?' active':'');
+  allBtn.textContent='全部';
+  allBtn.onclick=()=>{_visibleGroups=null;buildTeamFilter();buildTable();};
+  bar.appendChild(allBtn);
+  // Each team button (multi-select)
+  groups.forEach((g,gi)=>{
+    const color=GROUP_COLORS[g.colorIdx%4];
+    const sel=_visibleGroups!==null&&_visibleGroups.includes(gi);
+    const btn=document.createElement('button');
+    btn.className='filter-btn'+(sel?' active':'');
+    btn.textContent=g.name;
+    if(sel){btn.style.borderColor=color;btn.style.color=color;}
+    btn.onclick=()=>{
+      if(_visibleGroups===null){
+        // currently showing all -> start a new selection with just this team
+        _visibleGroups=[gi];
+      } else if(_visibleGroups.includes(gi)){
+        // deselect this team
+        _visibleGroups=_visibleGroups.filter(x=>x!==gi);
+        if(_visibleGroups.length===0) _visibleGroups=null; // none left -> show all
+      } else {
+        // add this team to selection
+        _visibleGroups=[..._visibleGroups,gi];
+      }
+      // if every team is now selected -> collapse to "全部"
+      if(_visibleGroups!==null&&_visibleGroups.length===groups.length) _visibleGroups=null;
+      buildTeamFilter(); buildTable();
+    };
+    bar.appendChild(btn);
+  });
+  // "全部取消" button (clear selection -> show all)
+  const clearBtn=document.createElement('button');
+  clearBtn.className='filter-btn';
+  clearBtn.textContent='✕ 全部取消';
+  clearBtn.style.marginLeft='auto';
+  clearBtn.style.color='#f08080';
+  clearBtn.style.borderColor='rgba(224,82,82,.4)';
+  clearBtn.onclick=()=>{_visibleGroups=null;buildTeamFilter();buildTable();};
+  bar.appendChild(clearBtn);
+}
+
+// ── Build table ───────────────────────────────────────────────────────────────
+function buildTable(){
+  const tbody=document.getElementById('tableBody');
+  tbody.innerHTML='';
+  const lastGi=groups.length-1;
+  updateWeekTabs(); buildTeamFilter();
+  if(currentWeekView==='next'&&!isNextWeekUnlocked()){
+    const now=new Date(),ns=new Date(now);
+    ns.setHours(0,0,1,0);
+    while(ns<=now||ns.getDay()!==6){ns.setDate(ns.getDate()+1);ns.setHours(0,0,1,0);}
+    tbody.innerHTML='<tr><td colspan="9"><div class="week-locked-msg"><div class="lock-icon">🔒</div><div class="lock-title">下週時間表尚未開放</div><div class="lock-sub">週六 00:00 後自動開啟</div><div class="lock-countdown">'+msToCountdown(ns-now)+' 後開放</div></div></td></tr>';
+    document.getElementById('mainTable').className='';
+    checkAutoThirdTeam(); return;
+  }
+  if(!buildTable._c) buildTable._c={};
+  if(!buildTable._s) buildTable._s={};
+  const visGis=_visibleGroups!==null?_visibleGroups:groups.map((_,i)=>i);
+  groups.forEach((g,gi)=>{
+    if(!visGis.includes(gi)) return;
+    const isScat=gi===lastGi;
+    const avail=getGroupAvail(g.members);
+    const sugs=getSuggestions(g.members);
+    const color=GROUP_COLORS[g.colorIdx%4];
+    const emoji=['🔵','🟣','🟢','🟠'][g.colorIdx%4];
+    const count=g.members.length;
+    const countOk=isScat||count>=12;
+    const isCol=!!buildTable._c[gi];
+    const isSugCol=buildTable._s[gi]!==false;
+    const countBadge=isScat?'<span class="cnt-badge">'+count+' 人</span>':'<span class="cnt-badge'+(countOk?'':' cnt-warn')+'">'+ count+'/12'+(countOk?'':' ⚠')+'</span>';
+    const barTr=document.createElement('tr');
+    barTr.className='group-row';
+    barTr.innerHTML='<td colspan="9" style="padding:0"><div class="group-avail-bar" style="border-color:'+color+'"><button class="group-collapse-btn" onclick="toggleGroup('+gi+')">'+(isCol?'▸':'▾')+'</button><span class="avail-label" style="color:'+color+'">'+emoji+'<input class="ef gname-ef" value="'+esc(g.name)+'" style="color:'+color+';max-width:90px" onchange="groups['+gi+'].name=this.value;buildTable()" '+(appMode==='member'?'':'readonly')+'> '+countBadge+'<span class="raid-time-wrap"><span class="raid-time-label">出團時間</span><input class="raid-time-input" value="'+esc(g.raidTime||'')+'" placeholder="e.g. 6/12 22:00 &amp; 6/13 23:00" onchange="groups['+gi+'].raidTime=this.value;onRaidTimeChange()"></span></span><div id="avail-'+gi+'" style="display:flex;flex-wrap:wrap;gap:4px"></div></div></td>';
+    if(appMode==='member'){barTr.addEventListener('dragover',e=>{e.preventDefault();barTr.classList.add('drag-over');});barTr.addEventListener('dragleave',()=>barTr.classList.remove('drag-over'));barTr.addEventListener('drop',e=>onDropGroup(e,gi));}
+    tbody.appendChild(barTr);
+    setTimeout(()=>{
+      const el=document.getElementById('avail-'+gi);
+      if(!el) return; el.innerHTML='';
+      if(!isCol){avail.forEach((a,di)=>{if(a)el.innerHTML+='<span class="avail-slot-tag">'+DAYS_LABEL[di].replace(' ','')+'&thinsp;'+a.timeStr+'</span>';});
+      if(!el.innerHTML) el.innerHTML='<em style="color:var(--muted);font-size:.67rem">暫無全員共同時段</em>';}
+    },0);
+    if(isCol) return;
+    if(sugs.length){
+      const sid='sb-'+gi;
+      const infoTr=document.createElement('tr');
+      infoTr.className='sug-tr';
+      const availHtml=avail.map((a,di)=>a?'<span class="avail-slot-tag">'+DAYS_LABEL[di].replace(' ','')+'&thinsp;'+a.timeStr+'</span>':'').join('');
+      const sugHtml=sugs.map(s=>'<div class="sug-row"><span class="sug-day">'+s.day.replace(' ','')+'</span><span>若 <b class="name-red">'+s.blockers.join('、')+'</b> 調整，其餘 <b class="num-green">'+s.available+'人</b> 可 <b class="time-gold">'+s.window+'</b> 出團</span></div>').join('');
+      infoTr.innerHTML='<td colspan="9" style="padding:0"><div class="sug-wrap" style="border-color:'+color+'"><button class="sug-toggle" onclick="toggleSug('+gi+')"><span>📅 共同時段 &amp; 💡 調整建議</span><span class="sug-count">'+sugs.length+' 項</span><span class="sug-chevron">'+(isSugCol?'▸':'▾')+'</span></button><div id="'+sid+'" style="display:'+(isSugCol?'none':'block')+'"><div class="sug-section-title">📅 共同可出時段</div><div class="sug-avail-wrap">'+(availHtml||'<em style="color:var(--muted)">暫無</em>')+'</div><div class="sug-section-title" style="margin-top:8px">💡 調整建議</div>'+sugHtml+'</div></div></td>';
+      tbody.appendChild(infoTr);
+    }
+    g.members.forEach((m,mi)=>{
+      const wdata=getMemberWeekData(m,currentWeekView);
+      const rowDays=wdata.days, rowTimes=wdata.times;
+      const canEdit=appMode==='time'?(_activePlayer&&_activePlayer.gi===gi&&_activePlayer.mi===mi):false;
+      const canEditTime=canEdit||appMode==='member';
+      const isMem=appMode==='member';
+      const tr=document.createElement('tr');
+      tr.className='member';
+      const cells=rowDays.map((type,di)=>{
+        const dt=type==='empty'?'no':type;
+        return '<td class="avail" id="cell-'+gi+'-'+mi+'-'+di+'"'+(canEditTime?' onclick="onCellTopClick(event,'+gi+','+mi+','+di+')"':'')+' ><div class="cell-inner '+dt+'" style="pointer-events:none"><input class="time-ef" id="tef-'+gi+'-'+mi+'-'+di+'" value="'+esc(rowTimes[di])+'" onchange="onTimeChange('+gi+','+mi+','+di+',this.value)" onclick="event.stopPropagation()" style="pointer-events:none" readonly></div></td>';
+      }).join('');
+      tr.innerHTML='<td class="cell-name"><div class="name-wrap">'+(isMem?'<span class="drag-handle">⠿</span>':'')+(isMem?'<button class="del-row-btn" onclick="delRow('+gi+','+mi+')" title="'+(isScat?'永久刪除':'移至散人')+'">✕</button>':'')+'<input class="ef name-ef" value="'+esc(m.name)+'" onchange="groups['+gi+'].members['+mi+'].name=this.value;buildTable()" '+(isMem?'':'readonly')+' style="'+(isMem?'':'pointer-events:none')+'"><input class="ef lv-ef" value="'+esc(m.lv)+'" placeholder="Lv" onchange="groups['+gi+'].members['+mi+'].lv=this.value" '+(isMem?'':'readonly')+' style="'+(isMem?'':'pointer-events:none')+'"><input class="ef job-ef" value="'+esc(m.job)+'" onchange="groups['+gi+'].members['+mi+'].job=this.value" '+(isMem?'':'readonly')+' style="'+(isMem?'':'pointer-events:none')+'"></div></td>'+cells+'<td class="note-cell"><textarea class="note-ef" rows="2" onchange="groups['+gi+'].members['+mi+'].note=this.value;onRaidTimeChange()" '+(canEditTime||isMem?'':'readonly')+' style="'+(canEditTime||isMem?'':'pointer-events:none')+'">'+esc(m.note)+'</textarea></td>';
+      if(isMem){tr.setAttribute('draggable','true');tr.addEventListener('dragstart',e=>onDragStart(e,gi,mi));tr.addEventListener('dragover',e=>onDragOver(e));tr.addEventListener('dragleave',()=>tr.classList.remove('drag-over'));tr.addEventListener('drop',e=>onDrop(e,gi,mi));tr.addEventListener('dragend',()=>document.querySelectorAll('tr.dragging,tr.drag-over').forEach(r=>r.classList.remove('dragging','drag-over')));}
+      tbody.appendChild(tr);
+    });
+    if(appMode==='member'){const at=document.createElement('tr');at.innerHTML='<td colspan="9" style="padding:4px 14px 8px"><button class="btn btn-member" style="font-size:.72rem;padding:4px 12px" onclick="addMemberToGroup('+gi+')">＋ 新增成員至 '+esc(g.name)+'</button></td>';tbody.appendChild(at);}
+  });
+  const tbl=document.getElementById('mainTable');
+  tbl.className='';
+  if(appMode==='time') tbl.classList.add('edit-mode','time-only');
+  if(appMode==='member') tbl.classList.add('edit-mode','member-mode');
+  checkAutoThirdTeam();
+}
+
+function toggleGroup(gi){if(!buildTable._c)buildTable._c={};buildTable._c[gi]=!buildTable._c[gi];buildTable();}
+function toggleSug(gi){if(!buildTable._s)buildTable._s={};buildTable._s[gi]=(buildTable._s[gi]===false)?true:false;buildTable();}
+
+// ── Third team ────────────────────────────────────────────────────────────────
+function checkAutoThirdTeam(){
+  const panel=document.getElementById('thirdTeamPanel');
+  if(!panel) return;
+  const lastGi=groups.length-1;
+  const scatter=groups[lastGi];
+  if(scatter.members.length<12){panel.innerHTML='';return;}
+  const nums=groups.map(g=>{const m=g.name.match(/第(\d+)團/);return m?parseInt(m[1]):0;}).filter(n=>n>0);
+  const nextNum=nums.length?Math.max(...nums)+1:3;
+  const vd=[];
+  DAYS_LABEL.forEach((label,di)=>{
+    const cg=scatter.members.filter(m=>m.days[di]!=='no'&&m.days[di]!=='empty');
+    if(cg.length<12) return;
+    const w=overlapWindow(scatter.members,di);
+    if(w) vd.push('<span class="avail-slot-tag">'+label.replace(' ','')+'&thinsp;'+windowToStr(w)+'（'+cg.length+'人）</span>');
+  });
+  const c=vd.length?'#7ed8b8':'#e8a84a';
+  panel.innerHTML='<div class="suggestion-panel" style="border-color:'+c+'"><div class="sug-title" style="color:'+c+'">'+(vd.length?'🟢 散人已達12人 — 可成立第'+nextNum+'團！':'🟡 散人達12人，但無全員共同時段')+(vd.length?' <button onclick="promoteScatter()" style="font-size:.68rem;padding:3px 10px;border-radius:5px;border:1px solid #7ed8b8;background:rgba(126,216,184,.12);color:#7ed8b8;cursor:pointer;font-family:inherit">✅ 建立第'+nextNum+'團</button>':'')+'</div><div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:5px">'+(vd.length?vd.join(''):'<em style="color:var(--muted);font-size:.73rem">請確認各人時段後再建立</em>')+'</div></div>';
+}
+function promoteScatter(){
+  const lastGi=groups.length-1;
+  const nums=groups.map(g=>{const m=g.name.match(/第(\d+)團/);return m?parseInt(m[1]):0;}).filter(n=>n>0);
+  const nextNum=nums.length?Math.max(...nums)+1:3;
+  groups[lastGi].name='第'+nextNum+'團';
+  groups[lastGi].colorIdx=lastGi%4;
+  groups.push({name:'散人',colorIdx:(lastGi+1)%4,members:[],raidTime:''});
+  saveData(); buildTable();
+  showToast('✅ 已建立第'+nextNum+'團！');
+}
+
+// ── Mode ──────────────────────────────────────────────────────────────────────
+function setMode(mode){
+  appMode=mode;
+  const badge=document.getElementById('modeBadge');
+  const bv=document.getElementById('btnView'),bt=document.getElementById('btnTime'),bm=document.getElementById('btnMember'),bs=document.getElementById('saveBtn');
+  if(mode==='view'){_activePlayer=null;badge.textContent='👁 檢視模式';badge.style.cssText='';bv.style.display='none';bt.style.display='';bm.style.display='';bs.style.display='none';}
+  else if(mode==='time'){badge.textContent='✏️ 修改時間';badge.style.background='rgba(212,168,67,.15)';badge.style.color='var(--gold)';badge.style.borderColor='var(--gold)';bv.style.display='';bt.style.display='none';bm.style.display='';bs.style.display='';}
+  else if(mode==='member'){badge.textContent='👥 調整成員';badge.style.background='rgba(46,168,110,.15)';badge.style.color='#5de0a5';badge.style.borderColor='#5de0a5';bv.style.display='';bt.style.display='';bm.style.display='none';bs.style.display='';}
+  buildTable();
+}
+
+// ── Player select (for time mode) ─────────────────────────────────────────────
+let _spFontScale = 1;
+function renderSpList(filter){
+  const wrap=document.getElementById('spListWrap');
+  if(!wrap) return;
+  const q=(filter||'').trim().toLowerCase();
+  const fs=_spFontScale;
+  let list='';
+  let matchCount=0;
+  groups.forEach((g,gi)=>{
+    if(!g.members.length) return;
+    const c=GROUP_COLORS[g.colorIdx%4];
+    const matched=g.members.map((mem,mi)=>({mem,mi})).filter(({mem})=>{
+      if(!q) return true;
+      return (mem.name||'').toLowerCase().includes(q)||(mem.job||'').toLowerCase().includes(q);
+    });
+    if(!matched.length) return;
+    list+='<div style="font-size:'+(.68*fs)+'rem;font-weight:700;color:'+c+';margin:10px 0 5px">'+esc(g.name)+'</div>';
+    matched.forEach(({mem,mi})=>{
+      matchCount++;
+      list+='<button onclick="onPlayerSelected('+gi+','+mi+')" style="display:block;width:100%;text-align:left;padding:'+(9*fs)+'px '+(12*fs)+'px;margin-bottom:4px;background:rgba(255,255,255,.03);border:1px solid #272d40;border-radius:6px;color:#cdd2e0;font-family:inherit;font-size:'+(.86*fs)+'rem;cursor:pointer"><span style="font-weight:600">'+esc(mem.name)+'</span><span style="color:#5a6180;font-size:'+(.72*fs)+'rem;margin-left:6px">'+esc(mem.job)+(mem.lv?' · Lv.'+mem.lv:'')+'</span></button>';
+    });
+  });
+  if(!matchCount) list='<div style="text-align:center;color:#5a6180;font-size:.8rem;padding:24px 0">找不到符合的成員</div>';
+  wrap.innerHTML=list;
+}
+function spZoom(delta){
+  _spFontScale=Math.max(.8,Math.min(1.8,_spFontScale+delta));
+  renderSpList(document.getElementById('spSearch').value);
+}
+function showSelectPlayerModal(){
+  let m=document.getElementById('spModal');
+  if(!m){m=document.createElement('div');m.id='spModal';m.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:400;align-items:center;justify-content:center;backdrop-filter:blur(4px)';document.body.appendChild(m);}
+  m.innerHTML='<div style="background:#181c27;border:1px solid #d4a843;border-radius:12px;padding:20px 20px 16px;width:360px;max-width:94vw;max-height:84vh;display:flex;flex-direction:column">'
+    +'<div style="font-size:1.2rem;text-align:center;margin-bottom:4px">👤</div>'
+    +'<div style="font-size:.9rem;font-weight:700;color:#d4a843;text-align:center;margin-bottom:2px">你是誰？</div>'
+    +'<div style="font-size:.7rem;color:#5a6180;text-align:center;margin-bottom:12px">選擇後只有你的那行可以修改</div>'
+    +'<div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">'
+      +'<input id="spSearch" placeholder="🔍 搜尋名稱或職業…" oninput="renderSpList(this.value)" style="flex:1;background:rgba(255,255,255,.04);border:1px solid #272d40;border-radius:6px;color:#cdd2e0;font-family:inherit;font-size:.82rem;padding:8px 11px;outline:none;box-sizing:border-box">'
+      +'<button onclick="spZoom(-0.15)" style="width:32px;height:32px;border-radius:6px;border:1px solid #272d40;background:rgba(255,255,255,.04);color:#cdd2e0;cursor:pointer;font-size:1rem;flex-shrink:0">A-</button>'
+      +'<button onclick="spZoom(0.15)" style="width:32px;height:32px;border-radius:6px;border:1px solid #272d40;background:rgba(255,255,255,.04);color:#cdd2e0;cursor:pointer;font-size:1rem;flex-shrink:0">A+</button>'
+    +'</div>'
+    +'<div id="spListWrap" style="overflow-y:auto;flex:1"></div>'
+    +'<button onclick="closeSpModal()" style="margin-top:12px;padding:9px;border-radius:6px;border:1px solid #272d40;background:none;color:#5a6180;cursor:pointer;font-family:inherit;font-size:.78rem;width:100%">取消</button>'
+    +'</div>';
+  m.style.display='flex';
+  renderSpList('');
+  setTimeout(()=>{const s=document.getElementById('spSearch');if(s)s.focus();},50);
+}
+function onPlayerSelected(gi,mi){closeSpModal();_clearPromptDone=false;_activePlayer={gi,mi};appMode='time';const badge=document.getElementById('modeBadge');badge.textContent='✏️ '+groups[gi].members[mi].name;badge.style.background='rgba(212,168,67,.15)';badge.style.color='var(--gold)';badge.style.borderColor='var(--gold)';document.getElementById('btnView').style.display='';document.getElementById('btnTime').style.display='none';document.getElementById('btnMember').style.display='';document.getElementById('saveBtn').style.display='';buildTable();}
+function closeSpModal(){const m=document.getElementById('spModal');if(m)m.style.display='none';}
+
+// Override setMode for time to show player select
+const _origSetMode=setMode;
+// Patch btnTime onclick
+document.getElementById('btnTime').onclick=function(){showSelectPlayerModal();};
+
+// ── Cell interaction ──────────────────────────────────────────────────────────
+function onCellTopClick(event,gi,mi,di){
+  if(appMode==='view') return;
+  event.stopPropagation();
+  if(_clearPromptDone){activateCell(gi,mi,di);return;}
+  _clearPromptDone=true;_pendingUnlock={gi,mi,di};
+  if(isClearWindowOpen()&&!hasClearBeenUsed()) showClearModal(gi,groups[gi]?groups[gi].name:'你的團隊');
+  else activateCell(gi,mi,di);
+}
+function activateCell(gi,mi,di){
+  const inp=document.getElementById('tef-'+gi+'-'+mi+'-'+di);
+  if(!inp) return;
+  inp.style.pointerEvents='';inp.removeAttribute('readonly');inp.focus();inp.select();
+}
+function onTimeChange(gi,mi,di,raw){applyTimeChange(gi,mi,di,raw,null);}
+function applyTimeChange(gi,mi,di,raw,forceType){
+  const val=(forceType!==null&&forceType!==undefined)?raw:normalizeTime(raw);
+  const mem=groups[gi].members[mi];
+  const wd=getMemberWeekData(mem,currentWeekView);
+  wd.times[di]=val===''?'—':val;
+  if(forceType) wd.days[di]=forceType;
+  else if(val==='✗'||val===''||val==='—'){wd.days[di]='no';wd.times[di]='✗';}
+  else if(val==='整天'||val==='可') wd.days[di]='all-day';
+  else wd.days[di]='partial';
+  if(currentWeekView==='this'){mem.days=wd.days;mem.times=wd.times;}
+  buildTable();
+  clearTimeout(onTimeChange._t);onTimeChange._t=setTimeout(saveData,1500);
+}
+
+// ── Normalize time ────────────────────────────────────────────────────────────
+function normalizeTime(raw){
+  if(!raw) return raw;
+  const t=raw.trim();
+  if(/^(都可以?|都行|[Oo]|整天|整日|都可)$/.test(t)) return '整天';
+  if(t==='—'||t==='✗'||t==='整天'||t==='可') return t;
+  let s=t.replace(/：/g,':');
+  s=s.replace(/^(\d{2})(\d{2})\s*[-–]\s*(\d{2})(\d{2})$/,'$1:$2–$3:$4');
+  s=s.replace(/^(\d{2})(\d{2})$/,'$1:$2');
+  const rm=s.match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
+  if(rm) return s;
+  const bm=s.match(/^(.+?)\s*前$/); if(bm){const v=parseHM(bm[1]);if(v!==null)return minsToStr(v)+'前';}
+  const v=parseHM(s); if(v!==null) return minsToStr(v)+'後';
+  return '✗';
+}
+function parseHM(s){
+  s=(s||'').trim();
+  let m=s.match(/^(\d{1,2}):(\d{2})/); if(m){let h=parseInt(m[1]),mn=parseInt(m[2]);if(h<12)h+=12;return h*60+mn;}
+  m=s.match(/晚[上]?(\d+)點(半)?/); if(m){let h=parseInt(m[1]);if(h<12)h+=12;return h*60+(m[2]?30:0);}
+  m=s.match(/^(\d+)$/); if(m){let h=parseInt(m[1]);if(h<12)h+=12;return h*60;}
+  return null;
+}
+
+// ── Clear window rules ────────────────────────────────────────────────────────
+function isClearWindowOpen(){const d=new Date().getDay();return d===0||d===1||d===2||d===3||d===6;}
+function getClearKey(){const t=getThisThursday();return 'clr-'+t.getFullYear()+'-'+(t.getMonth()+1)+'-'+t.getDate();}
+function hasClearBeenUsed(){try{return!!localStorage.getItem(getClearKey());}catch(e){return false;}}
+function markClearUsed(){try{localStorage.setItem(getClearKey(),Date.now());}catch(e){}}
+
+function showClearModal(gi,groupName){
+  const t=document.getElementById('clearTitle'),d=document.getElementById('clearDesc');
+  if(!t||!d){if(_pendingUnlock){activateCell(_pendingUnlock.gi,_pendingUnlock.mi,_pendingUnlock.di);_pendingUnlock=null;}return;}
+  t.textContent='是否清除'+groupName+'的時段？';
+  const filled=getFilledMembers(gi);_isFirstClearer=filled.length===0;
+  const note=_isFirstClearer?'目前尚無人填寫，按「是」將清除所有人時段。':'目前已有 '+filled.length+' 人填寫。\n按「是」將清除尚未填寫成員的時段。';
+  d.textContent='你是本次開啟後第一次修改時段。\n是否要清除「'+groupName+'」成員的時段？\n\n'+note+'\n＊第一位填寫請選「是」清除所有人\n點「否」只會修改你自己選的那格。';
+  document.getElementById('clearNoBtn').onclick=()=>{closeClearModal();if(_pendingUnlock){activateCell(_pendingUnlock.gi,_pendingUnlock.mi,_pendingUnlock.di);_pendingUnlock=null;}if(_pendingCycle){doCycleType(_pendingCycle.gi,_pendingCycle.mi,_pendingCycle.di);_pendingCycle=null;}};
+  document.getElementById('clearYesBtn').onclick=()=>{closeClearModal();clearTeamTimes(gi);};
+  document.getElementById('clearModal').style.display='block';
+}
+function closeClearModal(){document.getElementById('clearModal').style.display='none';}
+function clearTeamTimes(gi){
+  const filled=new Set(getFilledMembers(gi).map(m=>m.name));
+  groups[gi].members.forEach(m=>{
+    if(!_isFirstClearer&&filled.has(m.name)) return;
+    if(currentWeekView==='next'){if(!m.nextWeek)m.nextWeek={days:Array(7).fill('empty'),times:Array(7).fill('—')};m.nextWeek.days=Array(7).fill('empty');m.nextWeek.times=Array(7).fill('—');}
+    else{m.days=Array(7).fill('empty');m.times=Array(7).fill('—');}
+  });
+  markClearUsed();
+  buildTable();
+  if(_pendingUnlock){activateCell(_pendingUnlock.gi,_pendingUnlock.mi,_pendingUnlock.di);_pendingUnlock=null;}
+  if(_pendingCycle){doCycleType(_pendingCycle.gi,_pendingCycle.mi,_pendingCycle.di);_pendingCycle=null;}
+  saveData();showToast('✅ 已清除'+groups[gi].name+'時段！');
+}
+
+// ── CRUD ──────────────────────────────────────────────────────────────────────
+function delRow(gi,mi){
+  const last=groups.length-1;
+  if(gi!==last){groups[last].members.push(groups[gi].members.splice(mi,1)[0]);buildTable();return;}
+  if(!confirm('永久刪除「'+groups[gi].members[mi].name+'」？')) return;
+  groups[gi].members.splice(mi,1);buildTable();
+}
+function addMemberToGroup(gi){groups[gi].members.push({name:'新成員',lv:'',job:'職業',days:Array(7).fill('empty'),times:Array(7).fill('—'),note:''});buildTable();}
+
+// ── Drag ──────────────────────────────────────────────────────────────────────
+let _drag=null;
+function onDragStart(e,gi,mi){_drag={gi,mi};e.dataTransfer.effectAllowed='move';setTimeout(()=>e.target.closest('tr').classList.add('dragging'),0);}
+function onDragOver(e){e.preventDefault();const tr=e.target.closest('tr.member');if(!tr)return;document.querySelectorAll('tr.drag-over').forEach(r=>r.classList.remove('drag-over'));tr.classList.add('drag-over');}
+function onDrop(e,gi,mi){e.preventDefault();if(!_drag)return;const[mv]=groups[_drag.gi].members.splice(_drag.mi,1);groups[gi].members.splice(mi,0,mv);_drag=null;buildTable();}
+function onDropGroup(e,gi){e.preventDefault();document.querySelectorAll('tr.drag-over').forEach(r=>r.classList.remove('drag-over'));if(!_drag)return;const[mv]=groups[_drag.gi].members.splice(_drag.mi,1);groups[gi].members.push(mv);_drag=null;buildTable();}
+
+// ── Save/Load ─────────────────────────────────────────────────────────────────
+function onRaidTimeChange(){clearTimeout(onRaidTimeChange._t);onRaidTimeChange._t=setTimeout(saveData,1500);}
+async function saveData(){
+  showToast('? ????','#8bb8f0');
+  _localVersion=Date.now();
+  const slim=groups.map(g=>({name:g.name,colorIdx:g.colorIdx,raidTime:g.raidTime||'',members:g.members.map(m=>({name:m.name,lv:m.lv||'',job:m.job||'',days:m.days,times:m.times,note:m.note||'',nextWeek:m.nextWeek||null}))}));
+  const payload={groups:slim,_v:_localVersion};
+  try{localStorage.setItem('raidSchedule',JSON.stringify(payload));}catch(e){}
+  try{
+    const r=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'saveSchedule',data:payload})});
+    const out=await r.json();
+    if(!out.ok) throw new Error(out.error||'save failed');
+    showToast('? ???????? Google ???');
+    showSyncStatus('ok');
+  }catch(e){
+    showToast('?? ??????Google ?????'+e.message+'?','#e8c56a');
+    showSyncStatus('error');
+  }
+}
+function isValidRemoteData(d){
+  if(!d||!d.groups||!Array.isArray(d.groups)||!d.groups.length) return false;
+  return d.groups.reduce((n,g)=>n+(g.members||[]).filter(m=>m&&m.name).length,0)>=5;
+}
+function mergeRemoteData(rg){
+  groups=JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+  rg.forEach(r=>{
+    const li=groups.findIndex(g=>g.name===r.name);
+    if(li>=0){
+      if(r.raidTime!==undefined) groups[li].raidTime=r.raidTime;
+      r.members.forEach(rm=>{
+        if(!rm||!rm.name) return;
+        const mi=groups[li].members.findIndex(m=>m.name===rm.name);
+        if(mi>=0){if(rm.days&&rm.days.length===7)groups[li].members[mi].days=rm.days;if(rm.times&&rm.times.length===7)groups[li].members[mi].times=rm.times;if(rm.note!==undefined)groups[li].members[mi].note=rm.note;if(rm.nextWeek)groups[li].members[mi].nextWeek=rm.nextWeek;}
+        else groups[li].members.push(rm);
+      });
+    } else if(r.name&&r.name!=='散人') groups.push(r);
+  });
+}
+async function loadData(){
+  showSyncStatus('loading');
+  let loaded=false;
+  try{
+    const r=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'loadSchedule'})});
+    const out=await r.json();
+    if(out.ok && out.data && isValidRemoteData(out.data)){
+      mergeRemoteData(out.data.groups);
+      _localVersion=out.data._v||0;
+      loaded=true;
+      showSyncStatus('ok');
+    }
+  }catch(e){console.warn('google load failed:',e.message);}
+  if(!loaded){
+    try{
+      const s=localStorage.getItem('raidSchedule');
+      if(s){const d=JSON.parse(s);if(isValidRemoteData(d)){mergeRemoteData(d.groups);_localVersion=d._v||0;loaded=true;}}
+    }catch(e){}
+    showSyncStatus(loaded?'ok':'error');
+    if(!loaded) saveData();
+  }
+  updateDateHeader();updateWeekTabs();buildTable();
+  setTimeout(autoRefresh,300000);
+}
+async function autoRefresh(){
+  if(appMode!=='view'){setTimeout(autoRefresh,300000);return;}
+  try{
+    const r=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'loadSchedule'})});
+    const out=await r.json();
+    if(out.ok && out.data && isValidRemoteData(out.data) && (out.data._v||0)>=_localVersion){
+      mergeRemoteData(out.data.groups);
+      buildTable();
+    }
+    showSyncStatus('ok');
+  }catch(e){showSyncStatus('error');}
+  setTimeout(autoRefresh,300000);
+}
+function showSyncStatus(s){const el=document.getElementById('syncStatus');if(!el)return;const m={loading:['⟳ 讀取中…','#5a6180'],ok:['● 已同步','#5de0a5'],error:['● 離線','#f08080']};const[txt,color]=m[s]||m.ok;el.textContent=txt;el.style.color=color;}
+function showToast(msg,color){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(120px);background:#181c27;border-radius:10px;padding:12px 24px;font-size:.82rem;font-family:inherit;white-space:nowrap;box-shadow:0 6px 24px rgba(0,0,0,.5);transition:transform .3s;z-index:2000;text-align:center;';document.body.appendChild(t);}t.textContent=msg;t.style.color=color||'#7ed87e';t.style.border='1px solid '+(color||'#2d5a2d');t.style.transform='translateX(-50%) translateY(0)';clearTimeout(t._t);t._t=setTimeout(()=>{t.style.transform='translateX(-50%) translateY(120px)';},2500);}
+
+// ── Schedule refresh ──────────────────────────────────────────────────────────
+function scheduleWeekRefresh(){
+  const now=new Date(),next=new Date(now);
+  next.setHours(23,0,1,0);
+  while(next<=now||next.getDay()!==3){next.setDate(next.getDate()+1);next.setHours(23,0,1,0);}
+  setTimeout(()=>{groups.forEach(g=>g.members.forEach(m=>{m.days=Array(7).fill('empty');m.times=Array(7).fill('—');}));updateDateHeader();buildTable();saveData();showToast('🗓️ 週三自動清除完成！');scheduleWeekRefresh();},next-now);
+}
+
+// ── Signup ────────────────────────────────────────────────────────────────────
+function showSignupModal(){
+  const c=document.getElementById('su-days');c.innerHTML='';
+  DAYS_LABEL.forEach((label,di)=>{const p=label.split(' ');const w=document.createElement('div');w.innerHTML='<button class="su-day-btn" id="su-btn-'+di+'" onclick="toggleSuDay('+di+')">'+p[0]+' '+p[1]+'</button><input class="su-day-input" id="su-time-'+di+'" placeholder="e.g. 19:00後 或 整天">';c.appendChild(w);});
+  document.getElementById('su-name').value='';document.getElementById('su-lv').value='';document.getElementById('su-job').value='';document.getElementById('su-err').style.display='none';
+  document.getElementById('signupModal').style.display='flex';setTimeout(()=>document.getElementById('su-name').focus(),50);
+}
+function toggleSuDay(di){const b=document.getElementById('su-btn-'+di),i=document.getElementById('su-time-'+di);b.classList.toggle('active');i.style.display=b.classList.contains('active')?'block':'none';if(!b.classList.contains('active'))i.value='';}
+function closeSignupModal(){document.getElementById('signupModal').style.display='none';}
+function submitSignup(){
+  const name=document.getElementById('su-name').value.trim(),lv=document.getElementById('su-lv').value.trim(),job=document.getElementById('su-job').value.trim(),err=document.getElementById('su-err');
+  if(!name){err.textContent='請填寫遊戲名稱';err.style.display='block';return;}
+  if(!job){err.textContent='請填寫職業';err.style.display='block';return;}
+  const days=Array(7).fill('empty'),times=Array(7).fill('—');let hasDay=false;
+  DAYS_LABEL.forEach((_,di)=>{const b=document.getElementById('su-btn-'+di),i=document.getElementById('su-time-'+di);if(b&&b.classList.contains('active')){hasDay=true;const v=i?normalizeTime(i.value.trim())||'整天':'整天';times[di]=v;days[di]=v==='✗'?'no':v==='整天'?'all-day':'partial';}});
+  if(!hasDay){err.textContent='請至少選擇一個日期';err.style.display='block';return;}
+  groups[groups.length-1].members.push({name,lv,job,days,times,note:''});
+  closeSignupModal();saveData();buildTable();showToast('✅ 已報名完成！請等待編組');
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── Start ─────────────────────────────────────────────────────────────────────
+DAYS_LABEL=computeWeekDays();
+updateDateHeader();
+updateWeekTabs();
+buildTable();
+loadData();
+scheduleWeekRefresh();
 </script>
 </body>
 </html>
