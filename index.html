@@ -124,6 +124,9 @@ tr.drag-over{outline:2px solid var(--gold);outline-offset:-2px}
 .signup-label{display:block;font-size:.7rem;color:var(--muted);margin-bottom:5px;letter-spacing:.04em}
 .signup-input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:inherit;font-size:.82rem;padding:8px 11px;outline:none;box-sizing:border-box}
 .signup-input:focus{border-color:var(--gold)}
+select.signup-input{cursor:pointer;-webkit-appearance:none;appearance:none}
+select.signup-input option{background:#181c27;color:var(--text)}
+select.signup-input optgroup{background:#0f1117;color:var(--gold);font-weight:700}
 .su-day-btn{padding:7px 6px;border-radius:5px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted);font-family:inherit;font-size:.72rem;cursor:pointer;text-align:center;transition:all .15s;line-height:1.3}
 .su-day-btn.active{border-color:var(--gold);background:rgba(212,168,67,.12);color:#f0d080;font-weight:600}
 .su-day-input{width:100%;margin-top:4px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:inherit;font-size:.68rem;padding:4px 6px;outline:none;display:none;box-sizing:border-box}
@@ -221,7 +224,7 @@ tr.drag-over{outline:2px solid var(--gold);outline-offset:-2px}
     <div class="signup-field"><label class="signup-label">遊戲名稱</label><input id="su-name" class="signup-input" placeholder="你的角色名稱" maxlength="20"></div>
     <div style="display:flex;gap:10px">
       <div class="signup-field" style="flex:1"><label class="signup-label">等級</label><input id="su-lv" class="signup-input" placeholder="e.g. 170" type="number"></div>
-      <div class="signup-field" style="flex:2"><label class="signup-label">職業</label><input id="su-job" class="signup-input" placeholder="e.g. 主教"></div>
+      <div class="signup-field" style="flex:2"><label class="signup-label">職業</label><select id="su-job" class="signup-input"><option value="">請選擇職業</option></select></div>
     </div>
     <div class="signup-label" style="margin-top:14px;margin-bottom:6px">可參加時段</div>
     <div id="su-days" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div>
@@ -295,18 +298,15 @@ let groups = [
       { name:"攸咪c",        lv:"171", job:"主教",
         days:["partial","partial","partial","partial","partial","partial","partial"],
         times:["19:00–01:00","19:00–01:00","15:00–02:00","15:00–01:00","19:00–01:00","19:00–01:00","19:00–01:00"], note:"" },
-      { name:"槍神好號",      lv:"171", job:"槍神",
-        days:["partial","no","empty","partial","partial","partial","partial"],
-        times:["22:30後可","✗","還不一定","22:30後可","22:30後可","22:30後可","22:30後可"], note:"" },
       { name:"怕今生是朕",    lv:"169", job:"聖騎士",
         days:["all-day","all-day","partial","all-day","all-day","all-day","all-day"],
         times:["都可以","都可以","23:15後","都可以","都可以","都可以","都可以"], note:"" },
       { name:"發發發發發",    lv:"169", job:"箭神",
         days:["partial","partial","partial","partial","partial","partial","partial"],
-        times:["晚上7點後","晚上7點後","晚上7點後","避開另一團","晚上7點後","晚上7點後","晚上7點後"], note:"" },
+        times:["晚上7點後","晚上7點後","晚上7點後","避開另一團","晚上7點後","晚上7點後","晚上7點後"], note:"", nextWeek:{"days":["partial","partial","partial","all-day","partial","partial","partial"],"times":["19:00後","19:00後","19:00後","整天","19:00後","19:00後","19:00後"]} },
       { name:"coco",         lv:"170", job:"大魔導士(冰/雷)",
         days:["partial","partial","all-day","all-day","no","no","no"],
-        times:["晚上7點後","晚上7點後","整天","整天","✗","✗","✗"], note:"" },
+        times:["晚上7點後","晚上7點後","整天","整天","✗","✗","✗"], note:"", nextWeek:{"days":["partial","partial","partial","all-day","partial","no","partial"],"times":["19:00後","19:00後","12:00–18:00","都可以","19:00後","✗","22:00後"]} },
       { name:"蜂窩性祖師爺",  lv:"168", job:"拳霸",
         days:["partial","partial","no","no","partial","partial","partial"],
         times:["22:30後","22:30後","✗","✗","22:30後","22:30後","22:30後"], note:"" },
@@ -315,16 +315,17 @@ let groups = [
         times:["22:30後","—","22:30後","22:30後","22:30後","22:30後","22:30後"], note:"" },
       { name:"WeiHao",       lv:"165", job:"聖騎士",
         days:["partial","partial","all-day","all-day","no","no","no"],
-        times:["20:30後","20:30後","整天","整天","✗","✗","✗"], note:"" },
+        times:["20:30後","20:30後","整天","整天","✗","✗","✗"], note:"", nextWeek:{"days":["no","no","partial","all-day","partial","partial","partial"],"times":["✗","✗","避1700–23:00","整天","20:30後","20:30後","20:30後"]} },
       { name:"城堡的城",      lv:"165", job:"神射手",
         days:["partial","partial","partial","partial","partial","partial","partial"],
         times:["20:00後","20:00後","20:00後","20:00後","20:00後","20:00後","20:00後"], note:"" },
       { name:"館長",          lv:"162", job:"暗影神偷",
         days:["partial","partial","partial","partial","partial","partial","partial"],
-        times:["19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00"], note:"" },
+        times:["19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00"], note:"", nextWeek:{"days":["partial","partial","partial","partial","partial","partial","partial"],"times":["19:00後","19:00後","19:00後","19:00後","19:00後","19:00後","19:00後"]} },
       { name:"黑咖啡超苦",    lv:"160", job:"暗影神偷",
         days:["partial","partial","partial","partial","partial","all-day","all-day"],
-        times:["22:30前","22:30前","22:30前","22:30前","22:30前","整天","整天"], note:"" },
+        times:["22:30前","22:30前","22:30前","22:30前","22:30前","整天","整天"], note:"", nextWeek:{"days":["all-day","all-day","all-day","all-day","partial","partial","partial"],"times":["都可以","都可以","都可以","都可以","19:00後","19:00後","19:00後"]} },,
+      { name:"心渡", lv:"", job:"", days:["empty","empty","empty","empty","empty","empty","empty"], times:["—","—","—","—","—","—","—"], note:"" }
     ]
   },
   {
@@ -335,10 +336,10 @@ let groups = [
         times:["19:00–23:00","19:00–23:00","19:00後","整日","19:00–23:00","19:00–23:00","19:00–23:00"], note:"" },
       { name:"世俗",         lv:"",  job:"神射手",
         days:["partial","partial","partial","all-day","partial","partial","partial"],
-        times:["19:00–23:00","19:00–23:00","暫定晚上可","整日","19:00–23:00","19:00–23:00","19:00–23:00"], note:"" },
+        times:["19:00–23:00","19:00–23:00","暫定晚上可","整日","19:00–23:00","19:00–23:00","19:00–23:00"], note:"", nextWeek:{"days":["partial","all-day","all-day","all-day","partial","partial","partial"],"times":["19:00後","整天","整天","整天","19:00後","19:00後","19:00後"]} },
       { name:"木木",         lv:"",  job:"大魔導士(冰/雷)",
         days:["no","no","partial","partial","no","no","no"],
-        times:["✗","✗","12:00–23:00","12:00–23:00","✗","✗","✗"], note:"" },
+        times:["✗","✗","12:00–23:00","12:00–23:00","✗","✗","✗"], note:"", nextWeek:{"days":["empty","empty","partial","partial","empty","empty","empty"],"times":["—","—","10:00–24:00","10:00–24:00","—","—","—"]} },
       { name:"30CM",        lv:"",  job:"拳霸",
         days:["no","no","all-day","all-day","no","no","no"],
         times:["✗","✗","整天","整天","✗","✗","✗"], note:"" },
@@ -347,22 +348,24 @@ let groups = [
         times:["整天","整天","23:15後","整天","✗","✗","✗"], note:"" },
       { name:"大哥",         lv:"",  job:"主教",
         days:["partial","partial","all-day","all-day","partial","partial","partial"],
-        times:["19:00–23:00","19:00後","整天","整天","19:00–23:00","19:00–23:00","19:00–23:00"], note:"" },
+        times:["19:00–23:00","19:00後","整天","整天","19:00–23:00","19:00–23:00","19:00–23:00"], note:"", nextWeek:{"days":["partial","all-day","all-day","all-day","partial","partial","partial"],"times":["19:00後","整天","整天","整天","19:00後","19:00後","19:00後"]} },
       { name:"發發發",       lv:"",  job:"黑騎士",
         days:["partial","partial","partial","all-day","partial","partial","partial"],
-        times:["19:00後","19:00後","19:00後","整天","19:00後","19:00後","19:00後"], note:"" },
+        times:["19:00後","19:00後","19:00後","整天","19:00後","19:00後","19:00後"], note:"六休息的話可整天", nextWeek:{"days":["partial","partial","partial","all-day","partial","partial","partial"],"times":["19:00後","19:00後","19:00後","整天","19:00後","19:00後","19:00後"]} },
       { name:"大牛",         lv:"",  job:"聖騎士",
         days:["partial","no","partial","partial","partial","partial","partial"],
-        times:["21:00後","✗","19:00後","19:00前","21:00後","21:00後","21:00後"], note:"" },
+        times:["21:00後","✗","19:00後","19:00前","21:00後","21:00後","21:00後"], note:"", nextWeek:{"days":["partial","partial","partial","partial","partial","partial","partial"],"times":["21:00後","21:00後","12:00後","10:00–19:00","21:00後","21:00後","21:00後"]} },
       { name:"拉爾",         lv:"",  job:"聖騎士",
         days:["partial","partial","partial","all-day","partial","partial","partial"],
-        times:["19:00後","19:00後","20:00後","整天","19:00後","19:00後","19:00後"], note:"" },
+        times:["19:00後","19:00後","20:00後","整天","19:00後","19:00後","19:00後"], note:"", nextWeek:{"days":["partial","partial","partial","all-day","partial","partial","partial"],"times":["19:00後","19:00後","20:00後","整天","19:00後","19:00後","19:00後"]} },
       { name:"GeniusWEN",  lv:"",  job:"黑騎士",
         days:["partial","partial","all-day","all-day","partial","partial","partial"],
         times:["20:00後","20:00後","整天","整天","20:00後","20:00後","20:00後"], note:"" },
       { name:"海鮮",         lv:"",  job:"暗影神偷",
         days:["partial","partial","no","no","partial","partial","partial"],
-        times:["19:00–23:00","19:00–23:00","✗","✗","19:00–23:00","19:00–23:00","19:00–23:00"], note:"" },
+        times:["19:00–23:00","19:00–23:00","✗","✗","19:00–23:00","19:00–23:00","19:00–23:00"], note:"" },,
+      { name:"阿余", lv:"", job:"", days:["empty","empty","empty","empty","empty","empty","empty"], times:["—","—","—","—","—","—","—"], note:"" },
+      { name:"福氣", lv:"", job:"", days:["empty","empty","empty","empty","empty","empty","empty"], times:["—","—","—","—","—","—","—"], note:"" }
     ]
   },
   {
@@ -371,59 +374,46 @@ let groups = [
     members:[
       { name:"阿彥",          lv:"175", job:"英雄",
         days:["empty","empty","empty","empty","empty","empty","empty"],
-        times:["—","—","—","—","—","—","—"], note:"",
-        nextWeek:{ days:["partial","partial","partial","partial","partial","partial","partial"],
-                   times:["21:00後","21:00後","21:00後","21:00後","21:00後","21:00後","21:00後"] } },
-      { name:"泰泰",          lv:"160", job:"黑騎",
+        times:["—","—","—","—","—","—","—"], note:"", nextWeek:{"days":["partial","partial","partial","partial","partial","partial","partial"],"times":["21:00後","21:00後","21:00後","21:00後","21:00後","21:00後","21:00後"]} },
+      { name:"泰泰",          lv:"160", job:"黑騎士",
         days:["empty","empty","empty","empty","empty","empty","empty"],
-        times:["—","—","—","—","—","—","—"], note:"",
-        nextWeek:{ days:["partial","partial","partial","partial","partial","partial","partial"],
-                   times:["21:00後","21:00後","21:00後","21:00後","21:00後","21:00後","21:00後"] } },
-      { name:"雪雪",          lv:"166", job:"冰雷",
+        times:["—","—","—","—","—","—","—"], note:"", nextWeek:{"days":["partial","partial","partial","partial","partial","partial","partial"],"times":["21:00後","21:00後","21:00後","21:00後","21:00後","21:00後","21:00後"]} },
+      { name:"雪雪",          lv:"166", job:"冰雷大魔導士",
         days:["empty","empty","empty","empty","empty","empty","empty"],
-        times:["—","—","—","—","—","—","—"], note:"",
-        nextWeek:{ days:["partial","partial","partial","partial","partial","partial","partial"],
-                   times:["21:00後","21:00後","21:00後","21:00後","21:00後","21:00後","21:00後"] } },
-      { name:"A17",          lv:"175", job:"標賊",
+        times:["—","—","—","—","—","—","—"], note:"", nextWeek:{"days":["partial","partial","partial","partial","partial","partial","partial"],"times":["21:00後","21:00後","21:00後","21:00後","21:00後","21:00後","21:00後"]} },
+      { name:"A17",          lv:"175", job:"夜使者",
         days:["empty","empty","empty","empty","empty","empty","empty"],
-        times:["—","—","—","—","—","—","—"], note:"不能打原因要到00:30下班",
-        nextWeek:{ days:["no","no","no","all-day","no","all-day","all-day"],
-                   times:["✗","✗","✗","整天","✗","整天","整天"] } },
-      { name:"火龍狗",         lv:"170", job:"黑騎",
+        times:["—","—","—","—","—","—","—"], note:"不能打原因要到0030下班", nextWeek:{"days":["partial","partial","no","all-day","no","all-day","all-day"],"times":["21:00後","21:00後","✗","整天","✗","整天","整天"]} },
+      { name:"火龍狗",         lv:"170", job:"黑騎士",
         days:["empty","empty","empty","empty","empty","empty","empty"],
-        times:["—","—","—","—","—","—","—"], note:"" },
-      { name:"邪惡氣息",        lv:"168", job:"弓",
+        times:["—","—","—","—","—","—","—"], note:"", nextWeek:{"days":["no","no","no","no","all-day","all-day","all-day"],"times":["✗","✗","✗","✗","整天","整天","整天"]} },
+      { name:"邪惡氣息",        lv:"168", job:"箭神",
         days:["empty","empty","empty","empty","empty","empty","empty"],
-        times:["—","—","—","—","—","—","—"], note:"" },
-      { name:"五條FRINEND",   lv:"176", job:"刀賊",
+        times:["—","—","—","—","—","—","—"], note:"都可以", nextWeek:{"days":["all-day","all-day","all-day","all-day","all-day","all-day","all-day"],"times":["都可以","都可以","都可以","都可以","都可以","都可以","都可以"]} },
+      { name:"五條FRINEND",   lv:"176", job:"暗影神偷",
         days:["empty","empty","empty","empty","empty","empty","empty"],
-        times:["—","—","—","—","—","—","—"], note:"",
-        nextWeek:{ days:["partial","partial","no","all-day","partial","partial","partial"],
-                   times:["22:30後","22:30後","✗","整天","22:30後","22:30後","22:30後"] } },
-      { name:"五條",          lv:"170", job:"黑騎",
+        times:["—","—","—","—","—","—","—"], note:"", nextWeek:{"days":["partial","partial","no","all-day","partial","partial","partial"],"times":["22:30後","22:30後","✗","整天","22:30後","22:30後","22:30後"]} },
+      { name:"五條",          lv:"170", job:"黑騎士",
         days:["empty","empty","empty","empty","empty","empty","empty"],
-        times:["—","—","—","—","—","—","—"], note:"",
-        nextWeek:{ days:["partial","partial","no","all-day","partial","partial","partial"],
-                   times:["22:30後","22:30後","✗","整天","22:30後","22:30後","22:30後"] } },
-      { name:"RUBY",         lv:"170", job:"弩",
+        times:["—","—","—","—","—","—","—"], note:"", nextWeek:{"days":["partial","partial","no","all-day","partial","partial","partial"],"times":["22:30後","22:30後","✗","整天","22:30後","22:30後","22:30後"]} },
+      { name:"RUBY",         lv:"170", job:"神射手",
         days:["empty","empty","empty","empty","empty","empty","empty"],
-        times:["—","—","—","—","—","—","—"], note:"若有多休可以提早打",
-        nextWeek:{ days:["partial","partial","partial","partial","partial","partial","partial"],
-                   times:["23:00後","23:00後","23:00後","23:00後","23:00後","23:00後","23:00後"] } },
+        times:["—","—","—","—","—","—","—"], note:"若有多休可以提早打", nextWeek:{"days":["partial","partial","partial","partial","partial","partial","partial"],"times":["23:00後","23:00後","23:00後","23:00後","23:00後","23:00後","23:00後"]} },
       { name:"天馬流星拳",       lv:"159", job:"拳霸",
         days:["empty","empty","empty","empty","empty","empty","empty"],
-        times:["—","—","—","—","—","—","—"], note:"" },
+        times:["—","—","—","—","—","—","—"], note:"1800後都可以配合", nextWeek:{"days":["partial","partial","partial","partial","partial","partial","partial"],"times":["18:00後","18:00後","18:00後","18:00後","18:00後","18:00後","18:00後"]} },
       { name:"前哥",          lv:"163", job:"主教",
         days:["empty","empty","empty","empty","empty","empty","empty"],
         times:["—","—","—","—","—","—","—"], note:"" },
-      { name:"弘耀",          lv:"166", job:"刀(菸30)",
+      { name:"弘耀",          lv:"166", job:"暗影神偷(煙30)",
         days:["empty","empty","empty","empty","empty","empty","empty"],
-        times:["—","—","—","—","—","—","—"], note:"六能提早",
-        nextWeek:{ days:["no","partial","partial","no","no","partial","no"],
-                   times:["✗","16:00–23:00","16:00後","✗","✗","16:00後","✗"] } },
-      { name:"WEI",          lv:"158", job:"刀(菸30)",
+        times:["—","—","—","—","—","—","—"], note:"六能提早", nextWeek:{"days":["no","partial","partial","no","no","partial","no"],"times":["✗","16:00–23:00","16:00後","✗","✗","16:00後","✗"]} },
+      { name:"WEI",          lv:"158", job:"暗影神偷(煙30)",
         days:["empty","empty","empty","empty","empty","empty","empty"],
-        times:["—","—","—","—","—","—","—"], note:"" },
+        times:["—","—","—","—","—","—","—"], note:"", nextWeek:{"days":["partial","partial","partial","partial","partial","all-day","no"],"times":["23:30後","23:30後","23:30後","23:30後","23:30後","整天","✗"]} },,
+      { name:"槍神好號",      lv:"171", job:"槍神",
+        days:["partial","no","empty","partial","partial","partial","partial"],
+        times:["22:30後可","✗","還不一定","22:30後可","22:30後可","22:30後可","22:30後可"], note:"" }
     ]
   },
   {
@@ -434,6 +424,30 @@ let groups = [
 
 const DEFAULT_GROUPS = JSON.parse(JSON.stringify(groups));
 const GROUP_COLORS = ['#5b8fd6','#c47ed8','#7ed8b8','#e8a84a'];
+// Artale 完整職業列表（依五大系分組，含四轉）
+const JOB_LIST = [
+  { sys:'劍士', jobs:['英雄','聖騎士','黑騎士'] },
+  { sys:'法師', jobs:['火毒大魔導士','冰雷大魔導士','主教'] },
+  { sys:'弓箭手', jobs:['箭神','神射手'] },
+  { sys:'盜賊', jobs:['夜使者','暗影神偷'] },
+  { sys:'海盜', jobs:['拳霸','槍神'] },
+];
+// 搜尋同義詞：輸入左邊任一關鍵字，會匹配到含右邊字串的職業
+const JOB_SYNONYMS = {
+  '冰雷':['冰雷','冰/雷','冰雷大魔導士','冰雷魔導士','冰雷巫師'],
+  '火毒':['火毒','火/毒','火毒大魔導士','火毒魔導士','火毒巫師'],
+  '冰':['冰雷','冰/雷'],
+  '雷':['冰雷','冰/雷'],
+  '火':['火毒','火/毒'],
+  '毒':['火毒','火/毒'],
+  '黑騎':['黑騎','黑騎士'],
+  '弓':['弓','弓箭手','箭神'],
+  '弩':['弩','弩弓手','神射手'],
+  '刀':['刀','刀賊','暗影神偷'],
+  '標':['標','標賊','夜使者'],
+  '法':['法','法師','大魔導士','魔導士','巫師'],
+  '槍':['槍','槍手','槍神','槍騎兵'],
+};
 const TYPES = ['empty','partial','all-day','no'];
 const TYPE_LABELS = {'all-day':'整天','partial':'部分可','no':'✗ 不可','empty':'—'};
 
@@ -723,7 +737,13 @@ function renderSpList(filter){
     const c=GROUP_COLORS[g.colorIdx%4];
     const matched=g.members.map((mem,mi)=>({mem,mi})).filter(({mem})=>{
       if(!q) return true;
-      return (mem.name||'').toLowerCase().includes(q)||(mem.job||'').toLowerCase().includes(q);
+      const name=(mem.name||'').toLowerCase();
+      const job=(mem.job||'').toLowerCase();
+      if(name.includes(q)||job.includes(q)) return true;
+      // synonym match: if query is a known keyword, check if job contains any synonym
+      const syns=JOB_SYNONYMS[filter.trim()];
+      if(syns&&syns.some(s=>(mem.job||'').includes(s))) return true;
+      return false;
     });
     if(!matched.length) return;
     list+='<div style="font-size:'+(.68*fs)+'rem;font-weight:700;color:'+c+';margin:10px 0 5px">'+esc(g.name)+'</div>';
@@ -953,7 +973,18 @@ function scheduleWeekRefresh(){
 }
 
 // ── Signup ────────────────────────────────────────────────────────────────────
+function populateJobDropdown(){
+  const sel=document.getElementById('su-job');
+  if(!sel||sel.options.length>1) return;
+  JOB_LIST.forEach(g=>{
+    const og=document.createElement('optgroup');
+    og.label=g.sys;
+    g.jobs.forEach(j=>{const o=document.createElement('option');o.value=j;o.textContent=j;og.appendChild(o);});
+    sel.appendChild(og);
+  });
+}
 function showSignupModal(){
+  populateJobDropdown();
   const c=document.getElementById('su-days');c.innerHTML='';
   DAYS_LABEL.forEach((label,di)=>{const p=label.split(' ');const w=document.createElement('div');w.innerHTML='<button class="su-day-btn" id="su-btn-'+di+'" onclick="toggleSuDay('+di+')">'+p[0]+' '+p[1]+'</button><input class="su-day-input" id="su-time-'+di+'" placeholder="e.g. 19:00後 或 整天">';c.appendChild(w);});
   document.getElementById('su-name').value='';document.getElementById('su-lv').value='';document.getElementById('su-job').value='';document.getElementById('su-err').style.display='none';
