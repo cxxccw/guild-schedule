@@ -480,6 +480,7 @@ function windowToStr(w){
   return minsToStr(w.start)+'–'+(w.end>=1440?'翌日':'')+minsToStr(w.end);
 }
 function overlapWindow(members,di){
+  members=(members||[]).filter(m=>m&&Array.isArray(m.days)&&Array.isArray(m.times));
   const filled=members.filter(m=>m.days[di]!=='empty'&&m.days[di]!=='no');
   if(!filled.length||members.some(m=>m.days[di]==='no'||m.days[di]==='empty')) return null;
   let ws=0,we=null;
@@ -891,7 +892,7 @@ function onRaidTimeChange(){clearTimeout(onRaidTimeChange._t);onRaidTimeChange._
 async function saveData(){
   showToast('???...','#8bb8f0');
   _localVersion=Date.now();
-  const slim=groups.map(g=>({name:g.name,colorIdx:g.colorIdx,raidTime:g.raidTime||'',members:g.members.map(m=>({name:m.name,lv:m.lv||'',job:m.job||'',days:m.days,times:m.times,note:m.note||'',nextWeek:m.nextWeek||null}))}));
+  const slim=groups.filter(g=>g&&g.name).map(g=>({name:g.name,colorIdx:g.colorIdx,raidTime:g.raidTime||'',members:(g.members||[]).filter(m=>m&&m.name).map(m=>({name:m.name,lv:m.lv||'',job:m.job||'',days:Array.isArray(m.days)?m.days:Array(7).fill('empty'),times:Array.isArray(m.times)?m.times:Array(7).fill('?'),note:m.note||'',nextWeek:(m.nextWeek&&typeof m.nextWeek==='object')?m.nextWeek:null}))}));
   const payload={groups:slim,_v:_localVersion};
   try{localStorage.setItem('raidSchedule_google_v2',JSON.stringify(payload));}catch(e){}
   try{
@@ -914,6 +915,7 @@ function normalizeRemoteData(d){
   if(!d || !Array.isArray(d.groups)) return d;
   d.groups.forEach(g=>{
     if(!Array.isArray(g.members)) g.members=[];
+    g.members=g.members.filter(m=>m&&m.name);
     g.members.forEach(m=>{
       if(!Array.isArray(m.days)) m.days=String(m.days||'').trim().split(/\s+/).filter(Boolean);
       if(!Array.isArray(m.times)) m.times=String(m.times||'').trim().split(/\s+/).filter(Boolean);
@@ -940,10 +942,9 @@ function mergeRemoteData(rg){
     const li=groups.findIndex(g=>g.name===r.name);
     if(li>=0){
       if(r.raidTime!==undefined) groups[li].raidTime=r.raidTime;
-      r.members.forEach(rm=>{
-        if(!rm||!rm.name) return;
-        const mi=groups[li].members.findIndex(m=>m.name===rm.name);
-        if(mi>=0){if(rm.days&&rm.days.length===7)groups[li].members[mi].days=rm.days;if(rm.times&&rm.times.length===7)groups[li].members[mi].times=rm.times;if(rm.note!==undefined)groups[li].members[mi].note=rm.note;if(rm.nextWeek)groups[li].members[mi].nextWeek=rm.nextWeek;}
+      (r.members||[]).filter(rm=>rm&&rm.name).forEach(rm=>{
+        const mi=groups[li].members.findIndex(m=>m&&m.name===rm.name);
+        if(mi>=0){if(rm.lv!==undefined)groups[li].members[mi].lv=rm.lv;if(rm.job!==undefined)groups[li].members[mi].job=rm.job;if(rm.days&&rm.days.length===7)groups[li].members[mi].days=rm.days;if(rm.times&&rm.times.length===7)groups[li].members[mi].times=rm.times;if(rm.note!==undefined)groups[li].members[mi].note=rm.note;if(rm.nextWeek&&typeof rm.nextWeek==='object')groups[li].members[mi].nextWeek=rm.nextWeek;}
         else groups[li].members.push(rm);
       });
     } else if(r.name&&r.name!=='散人') groups.push(r);
@@ -965,7 +966,7 @@ async function loadData(){
   if(!loaded){
     try{
       const s=localStorage.getItem('raidSchedule_google_v2');
-      if(s){const d=JSON.parse(s);if(isValidRemoteData(d)){mergeRemoteData(d.groups);_localVersion=d._v||0;loaded=true;}}
+      if(s){const d=normalizeRemoteData(JSON.parse(s));if(isValidRemoteData(d)){mergeRemoteData(d.groups);_localVersion=d._v||0;loaded=true;}}
     }catch(e){}
   }
   if(!loaded){
