@@ -39,10 +39,17 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .filter-btn.active{background:rgba(212,168,67,.12);border-color:var(--gold);color:var(--gold)}
 /* table */
 .table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);max-width:1200px;margin:0 auto}
+#floatDateBar{display:none;position:fixed;top:0;left:0;right:0;z-index:120;background:#0f1117;border-bottom:2px solid var(--gold);box-shadow:0 3px 12px rgba(0,0,0,.5);overflow:hidden}
+#floatDateBar.show{display:block}
+#floatDateBar .fdb-inner{display:flex;min-width:max-content}
+#floatDateBar .fdb-name{min-width:180px;flex-shrink:0;padding:8px 14px;font-size:.7rem;color:var(--muted);font-weight:600}
+#floatDateBar .fdb-day{min-width:88px;flex-shrink:0;text-align:center;padding:8px 8px;font-size:.72rem;font-weight:600;color:var(--gold)}
+#floatDateBar .fdb-day span{display:block;font-weight:300;font-size:.62rem;color:var(--muted)}
+#floatDateBar .fdb-note{min-width:140px;flex-shrink:0}
 table{width:100%;border-collapse:collapse;font-size:.8rem;white-space:nowrap}
 thead th{padding:10px 8px;font-weight:500;color:var(--muted);text-align:center;border-bottom:2px solid var(--border);font-size:.73rem;text-transform:uppercase}
 thead th.day-th{color:var(--gold);font-weight:600}
-thead th:first-child{text-align:left;padding-left:14px;min-width:180px}
+thead th:first-child{text-align:left;padding-left:14px;min-width:150px}
 thead th.note-th{min-width:140px}
 /* group rows */
 tr.group-row td{padding:0}
@@ -72,12 +79,12 @@ b.time-gold{color:var(--gold);font-weight:600}
 /* member rows */
 tbody tr.member{border-bottom:1px solid #1e2235}
 tbody tr.member:hover{background:rgba(255,255,255,.02)}
-.cell-name{padding:9px 8px 9px 14px;vertical-align:middle}
+.cell-name{padding:9px 6px 9px 12px;vertical-align:middle}
 .name-wrap{display:flex;align-items:center;gap:6px}
 .ef{background:transparent;border:none;outline:none;font-family:'Noto Sans TC',sans-serif;color:var(--text);font-size:.8rem}
 .name-ef{font-weight:500;max-width:90px}
 .lv-ef{font-size:.65rem;color:var(--gold-dim);max-width:38px}
-.job-ef{font-size:.65rem;color:var(--muted);max-width:110px;padding:1px 5px;border-radius:3px;background:rgba(255,255,255,.05)}
+.job-ef{font-size:.56rem;color:var(--muted);width:52px;max-width:52px;padding:1px 3px;border-radius:3px;background:rgba(255,255,255,.05);white-space:normal;word-break:break-all;line-height:1.15;text-align:left}
 .gname-ef{font-weight:700;letter-spacing:.06em;font-size:.75rem}
 .edit-mode .ef{border-bottom:1px dashed rgba(212,168,67,.35);background:rgba(212,168,67,.04);border-radius:3px 3px 0 0;padding:1px 3px}
 .ef:focus{border-color:var(--gold)!important;background:rgba(212,168,67,.1)!important}
@@ -89,6 +96,10 @@ td.avail{text-align:center;padding:0;min-width:88px;vertical-align:middle}
 .cell-inner.partial{background:var(--yel-bg);color:#e8c56a}
 .cell-inner.no{background:var(--red-bg);color:#f08080}
 .cell-inner.empty{background:var(--red-bg);color:#f08080}
+/* time mode: dim other people's rows */
+.cell-inner.dimmed{opacity:.32;filter:grayscale(.7)}
+tr.member.dimmed-row .cell-name{opacity:.4}
+tr.member.active-row{outline:2px solid var(--gold);outline-offset:-2px;background:rgba(212,168,67,.06)}
 .time-ef{background:transparent;border:none;outline:none;font-family:'Noto Sans TC',sans-serif;font-size:.68rem;color:inherit;width:100%;text-align:center;pointer-events:none}
 td.note-cell{padding:2px 8px 2px 4px;min-width:140px;max-width:200px;white-space:normal;word-break:break-all;font-size:.68rem;color:var(--muted);vertical-align:middle;line-height:1.4}
 .note-ef{background:transparent;border:none;outline:none;resize:none;font-family:'Noto Sans TC',sans-serif;font-size:.68rem;color:var(--muted);width:100%;min-height:28px;line-height:1.4}
@@ -100,7 +111,13 @@ td.note-cell{padding:2px 8px 2px 4px;min-width:140px;max-width:200px;white-space
 tr.dragging{opacity:.4}
 tr.drag-over{outline:2px solid var(--gold);outline-offset:-2px}
 /* time-only */
-.time-only .name-ef,.time-only .lv-ef,.time-only .job-ef,.time-only .note-ef{border-bottom:none!important;background:transparent!important;cursor:default}
+.time-only .name-ef,.time-only .lv-ef,.time-only .note-ef{border-bottom:none!important;background:transparent!important;cursor:default}
+.time-only .job-ef{border-bottom:none!important;cursor:default}
+.job-note-badge{font-size:.6rem;cursor:pointer;opacity:.7}
+.job-note-badge:hover{opacity:1}
+.job-note-span{position:relative}
+.job-note-span[data-note]:hover::after{content:attr(data-note);position:absolute;left:0;top:100%;margin-top:3px;background:#11141e;border:1px solid var(--gold);color:#e8c56a;font-size:.62rem;padding:3px 7px;border-radius:5px;white-space:nowrap;z-index:300;box-shadow:0 3px 10px rgba(0,0,0,.5)}
+#jobNoteTip{display:none;position:fixed;z-index:600;background:#11141e;border:1px solid var(--gold);color:#e8c56a;font-size:.72rem;padding:7px 12px;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.6);max-width:200px}
 .time-only .del-row-btn{display:none!important}
 .time-only .drag-handle{display:none!important}
 .time-only .gname-ef{pointer-events:none!important;border-bottom:none!important;background:transparent!important}
@@ -147,6 +164,7 @@ select.signup-input optgroup{background:#0f1117;color:var(--gold);font-weight:70
   <button class="btn btn-time" id="btnTime" onclick="setMode('time')">✏️ 修改時間</button>
   <button class="btn btn-member" id="btnMember" onclick="setMode('member')">👥 調整成員</button>
   <button class="btn btn-save" id="saveBtn" onclick="saveData()" style="display:none">💾 儲存變更</button>
+  <button class="btn" id="resetBtn" onclick="resetRoster()" style="display:none;border-color:#e05252;color:#f08080;background:rgba(224,82,82,.1)">♻️ 重置名單</button>
   <span id="syncStatus" style="font-size:.72rem;margin-left:auto;color:#5a6180">⟳ 讀取中…</span>
 </div>
 <div class="legend">
@@ -171,7 +189,8 @@ select.signup-input optgroup{background:#0f1117;color:var(--gold);font-weight:70
 <div class="team-filter" id="teamFilter">
   <span class="filter-label">顯示：</span>
 </div>
-<div class="table-wrap">
+<div id="floatDateBar"></div>
+<div class="table-wrap" id="tableWrap">
 <table id="mainTable">
   <thead><tr>
     <th>成員</th>
@@ -361,9 +380,6 @@ let groups = [
       { name:"GeniusWEN",  lv:"",  job:"黑騎士",
         days:["partial","partial","all-day","all-day","partial","partial","partial"],
         times:["20:00後","20:00後","整天","整天","20:00後","20:00後","20:00後"], note:"" },
-      { name:"海鮮",         lv:"",  job:"暗影神偷",
-        days:["partial","partial","no","no","partial","partial","partial"],
-        times:["19:00–23:00","19:00–23:00","✗","✗","19:00–23:00","19:00–23:00","19:00–23:00"], note:"" },,
       { name:"阿余", lv:"", job:"", days:["empty","empty","empty","empty","empty","empty","empty"], times:["—","—","—","—","—","—","—"], note:"" },
       { name:"福氣", lv:"", job:"", days:["empty","empty","empty","empty","empty","empty","empty"], times:["—","—","—","—","—","—","—"], note:"" }
     ]
@@ -378,7 +394,7 @@ let groups = [
       { name:"泰泰",          lv:"160", job:"黑騎士",
         days:["empty","empty","empty","empty","empty","empty","empty"],
         times:["—","—","—","—","—","—","—"], note:"", nextWeek:{"days":["partial","partial","partial","partial","partial","partial","partial"],"times":["21:00後","21:00後","21:00後","21:00後","21:00後","21:00後","21:00後"]} },
-      { name:"雪雪",          lv:"166", job:"冰雷大魔導士",
+      { name:"雪雪",          lv:"166", job:"大魔導士(冰/雷)",
         days:["empty","empty","empty","empty","empty","empty","empty"],
         times:["—","—","—","—","—","—","—"], note:"", nextWeek:{"days":["partial","partial","partial","partial","partial","partial","partial"],"times":["21:00後","21:00後","21:00後","21:00後","21:00後","21:00後","21:00後"]} },
       { name:"A17",          lv:"175", job:"夜使者",
@@ -405,20 +421,25 @@ let groups = [
       { name:"前哥",          lv:"163", job:"主教",
         days:["empty","empty","empty","empty","empty","empty","empty"],
         times:["—","—","—","—","—","—","—"], note:"" },
-      { name:"弘耀",          lv:"166", job:"暗影神偷(煙30)",
+      { name:"WEI",          lv:"158", job:"暗影神偷", jobNote:"煙30",
         days:["empty","empty","empty","empty","empty","empty","empty"],
-        times:["—","—","—","—","—","—","—"], note:"六能提早", nextWeek:{"days":["no","partial","partial","no","no","partial","no"],"times":["✗","16:00–23:00","16:00後","✗","✗","16:00後","✗"]} },
-      { name:"WEI",          lv:"158", job:"暗影神偷(煙30)",
-        days:["empty","empty","empty","empty","empty","empty","empty"],
-        times:["—","—","—","—","—","—","—"], note:"", nextWeek:{"days":["partial","partial","partial","partial","partial","all-day","no"],"times":["23:30後","23:30後","23:30後","23:30後","23:30後","整天","✗"]} },,
-      { name:"槍神好號",      lv:"171", job:"槍神",
-        days:["partial","no","empty","partial","partial","partial","partial"],
-        times:["22:30後可","✗","還不一定","22:30後可","22:30後可","22:30後可","22:30後可"], note:"" }
+        times:["—","—","—","—","—","—","—"], note:"", nextWeek:{"days":["partial","partial","partial","partial","partial","all-day","no"],"times":["23:30後","23:30後","23:30後","23:30後","23:30後","整天","✗"]} },
     ]
   },
   {
     name:"散人", colorIdx:3,
-    members:[]
+    members:[
+      { name:"槍神好號",      lv:"171", job:"槍神",
+        days:["partial","no","empty","partial","partial","partial","partial",
+      { name:"海鮮",         lv:"",  job:"暗影神偷",
+        days:["partial","partial","no","no","partial","partial","partial"],
+        times:["19:00–23:00","19:00–23:00","✗","✗","19:00–23:00","19:00–23:00","19:00–23:00"], note:"" }
+    ],
+        times:["22:30後可","✗","還不一定","22:30後可","22:30後可","22:30後可","22:30後可"], note:"" },
+      { name:"弘耀",          lv:"166", job:"暗影神偷", jobNote:"煙30",
+        days:["empty","empty","empty","empty","empty","empty","empty"],
+        times:["—","—","—","—","—","—","—"], note:"六能提早", nextWeek:{"days":["no","partial","partial","no","no","partial","no"],"times":["✗","16:00–23:00","16:00後","✗","✗","16:00後","✗"]} }
+    ]
   }
 ];
 
@@ -427,7 +448,7 @@ const GROUP_COLORS = ['#5b8fd6','#c47ed8','#7ed8b8','#e8a84a'];
 // Artale 完整職業列表（依五大系分組，含四轉）
 const JOB_LIST = [
   { sys:'劍士', jobs:['英雄','聖騎士','黑騎士'] },
-  { sys:'法師', jobs:['火毒大魔導士','冰雷大魔導士','主教'] },
+  { sys:'法師', jobs:['大魔導士(火/毒)','大魔導士(冰/雷)','主教'] },
   { sys:'弓箭手', jobs:['箭神','神射手'] },
   { sys:'盜賊', jobs:['夜使者','暗影神偷'] },
   { sys:'海盜', jobs:['拳霸','槍神'] },
@@ -560,7 +581,59 @@ function updateDateHeader(){
     const parts=d.split(' ');
     th.innerHTML=parts[0]+'<br><span style="font-weight:300;font-size:.68rem">'+parts[1]+'</span>';
   });
+  buildFloatDateBar();
 }
+
+// ── Floating date bar (sticks to top when scrolling) ──────────────────────────
+function buildFloatDateBar(){
+  const bar=document.getElementById('floatDateBar');
+  if(!bar) return;
+  // Measure actual column widths from the real table header
+  const table=document.getElementById('mainTable');
+  const ths=table?table.querySelectorAll('thead th'):[];
+  let widths=[];
+  if(ths.length){ ths.forEach(th=>widths.push(th.getBoundingClientRect().width)); }
+  // Column 0 = 成員, 1-7 = days, 8 = 備註
+  const nameW = widths[0]||180;
+  let html='<div class="fdb-inner"><div class="fdb-name" style="min-width:'+nameW+'px;width:'+nameW+'px">成員</div>';
+  DAYS_LABEL.forEach((d,i)=>{
+    const parts=d.split(' ');
+    const w=widths[i+1]||88;
+    html+='<div class="fdb-day" style="min-width:'+w+'px;width:'+w+'px">'+parts[0]+'<span>'+parts[1]+'</span></div>';
+  });
+  const noteW=widths[8]||140;
+  html+='<div class="fdb-note" style="min-width:'+noteW+'px;width:'+noteW+'px"></div></div>';
+  bar.innerHTML=html;
+  // match total width to table so horizontal sync lines up
+  if(table){ const inner=bar.querySelector('.fdb-inner'); if(inner) inner.style.width=table.getBoundingClientRect().width+'px'; }
+}
+function syncFloatBarScroll(){
+  const wrap=document.getElementById('tableWrap');
+  const bar=document.getElementById('floatDateBar');
+  if(!wrap||!bar) return;
+  const inner=bar.querySelector('.fdb-inner');
+  if(inner) inner.style.transform='translateX('+(-wrap.scrollLeft)+'px)';
+}
+function onPageScroll(){
+  const wrap=document.getElementById('tableWrap');
+  const bar=document.getElementById('floatDateBar');
+  if(!wrap||!bar) return;
+  const rect=wrap.getBoundingClientRect();
+  // Show floating bar when the table header has scrolled above the viewport top
+  // (table top is above 0 but table bottom still on screen)
+  if(rect.top<0 && rect.bottom>80){
+    bar.classList.add('show');
+    syncFloatBarScroll();
+  } else {
+    bar.classList.remove('show');
+  }
+}
+window.addEventListener('scroll',onPageScroll,{passive:true});
+window.addEventListener('resize',()=>{buildFloatDateBar();onPageScroll();},{passive:true});
+document.addEventListener('DOMContentLoaded',()=>{
+  const wrap=document.getElementById('tableWrap');
+  if(wrap) wrap.addEventListener('scroll',syncFloatBarScroll,{passive:true});
+});
 
 // ── Team filter ───────────────────────────────────────────────────────────────
 function buildTeamFilter(){
@@ -667,13 +740,17 @@ function buildTable(){
       const canEdit=appMode==='time'?(_activePlayer&&_activePlayer.gi===gi&&_activePlayer.mi===mi):false;
       const canEditTime=canEdit||appMode==='member';
       const isMem=appMode==='member';
+      // In time mode with a chosen player, dim everyone else's cells
+      const isDimmed=appMode==='time'&&_activePlayer&&!(_activePlayer.gi===gi&&_activePlayer.mi===mi);
+      const isActiveRow=appMode==='time'&&_activePlayer&&_activePlayer.gi===gi&&_activePlayer.mi===mi;
       const tr=document.createElement('tr');
-      tr.className='member';
+      tr.className='member'+(isDimmed?' dimmed-row':'')+(isActiveRow?' active-row':'');
       const cells=rowDays.map((type,di)=>{
         const dt=type==='empty'?'no':type;
-        return '<td class="avail" id="cell-'+gi+'-'+mi+'-'+di+'"'+(canEditTime?' onclick="onCellTopClick(event,'+gi+','+mi+','+di+')"':'')+' ><div class="cell-inner '+dt+'" style="pointer-events:none"><input class="time-ef" id="tef-'+gi+'-'+mi+'-'+di+'" value="'+esc(rowTimes[di])+'" onchange="onTimeChange('+gi+','+mi+','+di+',this.value)" onclick="event.stopPropagation()" style="pointer-events:none" readonly></div></td>';
+        const dimClass=isDimmed?' dimmed':'';
+        return '<td class="avail" id="cell-'+gi+'-'+mi+'-'+di+'"'+(canEditTime?' onclick="onCellTopClick(event,'+gi+','+mi+','+di+')"':'')+' ><div class="cell-inner '+dt+dimClass+'" style="pointer-events:none"><input class="time-ef" id="tef-'+gi+'-'+mi+'-'+di+'" value="'+esc(rowTimes[di])+'" onchange="onTimeChange('+gi+','+mi+','+di+',this.value)" onclick="event.stopPropagation()" style="pointer-events:none" readonly></div></td>';
       }).join('');
-      tr.innerHTML='<td class="cell-name"><div class="name-wrap">'+(isMem?'<span class="drag-handle">⠿</span>':'')+(isMem?'<button class="del-row-btn" onclick="delRow('+gi+','+mi+')" title="'+(isScat?'永久刪除':'移至散人')+'">✕</button>':'')+'<input class="ef name-ef" value="'+esc(m.name)+'" onchange="groups['+gi+'].members['+mi+'].name=this.value;buildTable()" '+(isMem?'':'readonly')+' style="'+(isMem?'':'pointer-events:none')+'"><input class="ef lv-ef" value="'+esc(m.lv)+'" placeholder="Lv" onchange="groups['+gi+'].members['+mi+'].lv=this.value" '+(isMem?'':'readonly')+' style="'+(isMem?'':'pointer-events:none')+'"><input class="ef job-ef" value="'+esc(m.job)+'" onchange="groups['+gi+'].members['+mi+'].job=this.value" '+(isMem?'':'readonly')+' style="'+(isMem?'':'pointer-events:none')+'"></div></td>'+cells+'<td class="note-cell"><textarea class="note-ef" rows="2" onchange="groups['+gi+'].members['+mi+'].note=this.value;onRaidTimeChange()" '+(canEditTime||isMem?'':'readonly')+' style="'+(canEditTime||isMem?'':'pointer-events:none')+'">'+esc(m.note)+'</textarea></td>';
+      tr.innerHTML='<td class="cell-name"><div class="name-wrap">'+(isMem?'<span class="drag-handle">⠿</span>':'')+(isMem?'<button class="del-row-btn" onclick="delRow('+gi+','+mi+')" title="'+(isScat?'永久刪除':'移至散人')+'">✕</button>':'')+'<input class="ef name-ef" value="'+esc(m.name)+'" onchange="groups['+gi+'].members['+mi+'].name=this.value;buildTable()" '+(isMem?'':'readonly')+' style="'+(isMem?'':'pointer-events:none')+'"><input class="ef lv-ef" value="'+esc(m.lv)+'" placeholder="Lv" onchange="groups['+gi+'].members['+mi+'].lv=this.value" '+(isMem?'':'readonly')+' style="'+(isMem?'':'pointer-events:none')+'">'+(isMem?('<input class="ef job-ef" value="'+esc(m.job)+'" title="右鍵編輯職業備註" oncontextmenu="editJobNote(event,'+gi+','+mi+')" onchange="groups['+gi+'].members['+mi+'].job=this.value">'):('<span class="job-ef job-note-span" oncontextmenu="return false" style="display:inline-block" '+(m.jobNote?'data-note="'+esc(m.jobNote)+'" ':'')+'>'+esc(jobDisplay(m.job))+(m.jobNote?' <span class="job-note-badge" onclick="showJobNote(event,'+gi+','+mi+')">📝</span>':'')+'</span>'))+'</div></td>'+cells+'<td class="note-cell"><textarea class="note-ef" rows="2" onchange="groups['+gi+'].members['+mi+'].note=this.value;onRaidTimeChange()" '+(canEditTime||isMem?'':'readonly')+' style="'+(canEditTime||isMem?'':'pointer-events:none')+'">'+esc(m.note)+'</textarea></td>';
       if(isMem){tr.setAttribute('draggable','true');tr.addEventListener('dragstart',e=>onDragStart(e,gi,mi));tr.addEventListener('dragover',e=>onDragOver(e));tr.addEventListener('dragleave',()=>tr.classList.remove('drag-over'));tr.addEventListener('drop',e=>onDrop(e,gi,mi));tr.addEventListener('dragend',()=>document.querySelectorAll('tr.dragging,tr.drag-over').forEach(r=>r.classList.remove('dragging','drag-over')));}
       tbody.appendChild(tr);
     });
@@ -684,6 +761,8 @@ function buildTable(){
   if(appMode==='time') tbl.classList.add('edit-mode','time-only');
   if(appMode==='member') tbl.classList.add('edit-mode','member-mode');
   checkAutoThirdTeam();
+  // rebuild floating date bar with actual column widths (after DOM paints)
+  requestAnimationFrame(buildFloatDateBar);
 }
 
 function toggleGroup(gi){if(!buildTable._c)buildTable._c={};buildTable._c[gi]=!buildTable._c[gi];buildTable();}
@@ -724,7 +803,7 @@ function setMode(mode){
   appMode=mode;
   const badge=document.getElementById('modeBadge');
   const bv=document.getElementById('btnView'),bt=document.getElementById('btnTime'),bm=document.getElementById('btnMember'),bs=document.getElementById('saveBtn');
-  if(mode==='view'){_activePlayer=null;badge.textContent='👁 檢視模式';badge.style.cssText='';bv.style.display='none';bt.style.display='';bm.style.display='';bs.style.display='none';}
+  const rb=document.getElementById('resetBtn');if(rb)rb.style.display=(mode==='member')?'':'none';if(mode==='view'){_activePlayer=null;badge.textContent='👁 檢視模式';badge.style.cssText='';bv.style.display='none';bt.style.display='';bm.style.display='';bs.style.display='none';}
   else if(mode==='time'){badge.textContent='✏️ 修改時間';badge.style.background='rgba(212,168,67,.15)';badge.style.color='var(--gold)';badge.style.borderColor='var(--gold)';bv.style.display='';bt.style.display='none';bm.style.display='';bs.style.display='';}
   else if(mode==='member'){badge.textContent='👥 調整成員';badge.style.background='rgba(46,168,110,.15)';badge.style.color='#5de0a5';badge.style.borderColor='#5de0a5';bv.style.display='';bt.style.display='';bm.style.display='none';bs.style.display='';}
   buildTable();
@@ -896,19 +975,19 @@ function onDropGroup(e,gi){e.preventDefault();document.querySelectorAll('tr.drag
 // ── Save/Load ─────────────────────────────────────────────────────────────────
 function onRaidTimeChange(){clearTimeout(onRaidTimeChange._t);onRaidTimeChange._t=setTimeout(saveData,1500);}
 async function saveData(){
-  showToast('???...','#8bb8f0');
+  showToast('⏳ 儲存中…','#8bb8f0');
   _localVersion=Date.now();
-  const slim=groups.filter(g=>g&&g.name).map(g=>({name:g.name,colorIdx:g.colorIdx,raidTime:g.raidTime||'',members:(g.members||[]).filter(m=>m&&m.name).map(m=>({name:m.name,lv:m.lv||'',job:m.job||'',days:Array.isArray(m.days)?m.days:Array(7).fill('empty'),times:Array.isArray(m.times)?m.times:Array(7).fill('?'),note:m.note||'',nextWeek:(m.nextWeek&&typeof m.nextWeek==='object')?m.nextWeek:null}))}));
+  const slim=groups.filter(g=>g&&g.name).map(g=>({name:g.name,colorIdx:g.colorIdx,raidTime:g.raidTime||'',members:(g.members||[]).filter(m=>m&&m.name).map(m=>({name:m.name,lv:m.lv||'',job:m.job||'',jobNote:m.jobNote||'',days:Array.isArray(m.days)?m.days:Array(7).fill('empty'),times:Array.isArray(m.times)?m.times:Array(7).fill('—'),note:m.note||'',nextWeek:(m.nextWeek&&typeof m.nextWeek==='object')?m.nextWeek:null}))}));
   const payload={groups:slim,_v:_localVersion};
   try{localStorage.setItem('raidSchedule_google_v2',JSON.stringify(payload));}catch(e){}
   try{
     const r=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'saveSchedule',data:payload})});
     const out=await r.json();
     if(!out.ok) throw new Error(out.error||'save failed');
-    showToast('???????? Google ???');
+    showToast('✅ 儲存成功！已同步 Google 雲端');
     showSyncStatus('ok');
   }catch(e){
-    showToast('??????Google ?????'+e.message,'#e8c56a');
+    showToast('💾 已本地儲存（Google 同步失敗：'+e.message+'）','#e8c56a');
     showSyncStatus('error');
   }
 }
@@ -926,7 +1005,7 @@ function normalizeRemoteData(d){
       if(!Array.isArray(m.days)) m.days=String(m.days||'').trim().split(/\s+/).filter(Boolean);
       if(!Array.isArray(m.times)) m.times=String(m.times||'').trim().split(/\s+/).filter(Boolean);
       while(m.days.length<7) m.days.push('empty');
-      while(m.times.length<7) m.times.push('?');
+      while(m.times.length<7) m.times.push('—');
       m.days=m.days.slice(0,7);
       m.times=m.times.slice(0,7);
       if(!m.nextWeek || typeof m.nextWeek==='string') m.nextWeek=null;
@@ -934,7 +1013,7 @@ function normalizeRemoteData(d){
         if(!Array.isArray(m.nextWeek.days)) m.nextWeek.days=String(m.nextWeek.days||'').trim().split(/\s+/).filter(Boolean);
         if(!Array.isArray(m.nextWeek.times)) m.nextWeek.times=String(m.nextWeek.times||'').trim().split(/\s+/).filter(Boolean);
         while(m.nextWeek.days.length<7) m.nextWeek.days.push('empty');
-        while(m.nextWeek.times.length<7) m.nextWeek.times.push('?');
+        while(m.nextWeek.times.length<7) m.nextWeek.times.push('—');
         m.nextWeek.days=m.nextWeek.days.slice(0,7);
         m.nextWeek.times=m.nextWeek.times.slice(0,7);
       }
@@ -950,7 +1029,7 @@ function mergeRemoteData(rg){
       if(r.raidTime!==undefined) groups[li].raidTime=r.raidTime;
       (r.members||[]).filter(rm=>rm&&rm.name).forEach(rm=>{
         const mi=groups[li].members.findIndex(m=>m&&m.name===rm.name);
-        if(mi>=0){if(rm.lv!==undefined)groups[li].members[mi].lv=rm.lv;if(rm.job!==undefined)groups[li].members[mi].job=rm.job;if(rm.days&&rm.days.length===7)groups[li].members[mi].days=rm.days;if(rm.times&&rm.times.length===7)groups[li].members[mi].times=rm.times;if(rm.note!==undefined)groups[li].members[mi].note=rm.note;if(rm.nextWeek&&typeof rm.nextWeek==='object')groups[li].members[mi].nextWeek=rm.nextWeek;}
+        if(mi>=0){if(rm.lv!==undefined)groups[li].members[mi].lv=rm.lv;if(rm.job!==undefined)groups[li].members[mi].job=rm.job;if(rm.jobNote!==undefined)groups[li].members[mi].jobNote=rm.jobNote;if(rm.days&&rm.days.length===7)groups[li].members[mi].days=rm.days;if(rm.times&&rm.times.length===7)groups[li].members[mi].times=rm.times;if(rm.note!==undefined)groups[li].members[mi].note=rm.note;if(rm.nextWeek&&typeof rm.nextWeek==='object')groups[li].members[mi].nextWeek=rm.nextWeek;}
         else groups[li].members.push(rm);
       });
     } else if(r.name&&r.name!=='散人') groups.push(r);
@@ -1040,6 +1119,58 @@ function submitSignup(){
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// Force-overwrite cloud with the code's built-in roster (DEFAULT_GROUPS)
+function resetRoster(){
+  if(!confirm('確定要用程式內建的最新名單覆蓋雲端嗎？\n（會清掉雲端目前的分團，但保留各人已填的時間）')) return;
+  // Rebuild groups from DEFAULT_GROUPS, but keep any time data that matches by name
+  const oldByName={};
+  groups.forEach(g=>g.members.forEach(m=>{oldByName[m.name]={days:m.days,times:m.times,note:m.note,nextWeek:m.nextWeek,jobNote:m.jobNote};}));
+  groups=JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+  groups.forEach(g=>g.members.forEach(m=>{
+    const o=oldByName[m.name];
+    if(o){
+      if(o.days)m.days=o.days; if(o.times)m.times=o.times;
+      if(o.note!==undefined)m.note=o.note; if(o.nextWeek)m.nextWeek=o.nextWeek;
+      // jobNote: prefer code's value, fall back to old
+      if(m.jobNote===undefined&&o.jobNote)m.jobNote=o.jobNote;
+    }
+  }));
+  _localVersion=Date.now();
+  buildTable();
+  saveData();
+  showToast('♻️ 名單已重置並覆蓋雲端！');
+}
+// Show job note on tap (mobile) — toggle a floating tip
+function showJobNote(ev,gi,mi){
+  ev.stopPropagation();
+  const note=groups[gi].members[mi].jobNote||'';
+  if(!note) return;
+  let tip=document.getElementById('jobNoteTip');
+  if(!tip){tip=document.createElement('div');tip.id='jobNoteTip';document.body.appendChild(tip);}
+  tip.textContent='📝 '+note;
+  tip.style.display='block';
+  const x=ev.touches?ev.touches[0].clientX:ev.clientX;
+  const y=ev.touches?ev.touches[0].clientY:ev.clientY;
+  tip.style.left=Math.min(x,window.innerWidth-180)+'px';
+  tip.style.top=(y+14)+'px';
+  clearTimeout(showJobNote._t);
+  showJobNote._t=setTimeout(()=>{tip.style.display='none';},2500);
+}
+// Right-click (member mode) to edit job note
+function editJobNote(ev,gi,mi){
+  ev.preventDefault();
+  const cur=groups[gi].members[mi].jobNote||'';
+  const v=prompt('輸入職業備註（例：煙30）。留空可清除：',cur);
+  if(v===null) return;
+  groups[gi].members[mi].jobNote=v.trim();
+  saveData();
+  buildTable();
+}
+// Simplify job name for table display (data keeps full name)
+function jobDisplay(job){
+  if(!job) return '';
+  return job.replace('大魔導士(冰/雷)','冰雷').replace('大魔導士(火/毒)','火毒').replace('大魔導士（冰/雷）','冰雷').replace('大魔導士（火/毒）','火毒');
+}
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 DAYS_LABEL=computeWeekDays();
