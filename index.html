@@ -909,6 +909,31 @@ function isValidRemoteData(d){
   if(!d||!d.groups||!Array.isArray(d.groups)||!d.groups.length) return false;
   return d.groups.reduce((n,g)=>n+(g.members||[]).filter(m=>m&&m.name).length,0)>=5;
 }
+
+function normalizeRemoteData(d){
+  if(!d || !Array.isArray(d.groups)) return d;
+  d.groups.forEach(g=>{
+    if(!Array.isArray(g.members)) g.members=[];
+    g.members.forEach(m=>{
+      if(!Array.isArray(m.days)) m.days=String(m.days||'').trim().split(/\s+/).filter(Boolean);
+      if(!Array.isArray(m.times)) m.times=String(m.times||'').trim().split(/\s+/).filter(Boolean);
+      while(m.days.length<7) m.days.push('empty');
+      while(m.times.length<7) m.times.push('?');
+      m.days=m.days.slice(0,7);
+      m.times=m.times.slice(0,7);
+      if(!m.nextWeek || typeof m.nextWeek==='string') m.nextWeek=null;
+      if(m.nextWeek){
+        if(!Array.isArray(m.nextWeek.days)) m.nextWeek.days=String(m.nextWeek.days||'').trim().split(/\s+/).filter(Boolean);
+        if(!Array.isArray(m.nextWeek.times)) m.nextWeek.times=String(m.nextWeek.times||'').trim().split(/\s+/).filter(Boolean);
+        while(m.nextWeek.days.length<7) m.nextWeek.days.push('empty');
+        while(m.nextWeek.times.length<7) m.nextWeek.times.push('?');
+        m.nextWeek.days=m.nextWeek.days.slice(0,7);
+        m.nextWeek.times=m.nextWeek.times.slice(0,7);
+      }
+    });
+  });
+  return d;
+}
 function mergeRemoteData(rg){
   groups=JSON.parse(JSON.stringify(DEFAULT_GROUPS));
   rg.forEach(r=>{
@@ -930,8 +955,8 @@ async function loadData(){
   try{
     const r=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'loadSchedule'})});
     const out=await r.json();
-    if(out.ok && out.data && isValidRemoteData(out.data)){
-      mergeRemoteData(out.data.groups);
+    if(out.ok && out.data && isValidRemoteData(normalizeRemoteData(out.data))){
+      mergeRemoteData(normalizeRemoteData(out.data).groups);
       _localVersion=out.data._v||0;
       loaded=true;
       showSyncStatus('ok');
@@ -956,8 +981,8 @@ async function autoRefresh(){
   try{
     const r=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'loadSchedule'})});
     const out=await r.json();
-    if(out.ok && out.data && isValidRemoteData(out.data) && (out.data._v||0)>=_localVersion){
-      mergeRemoteData(out.data.groups);
+    if(out.ok && out.data && isValidRemoteData(normalizeRemoteData(out.data)) && (out.data._v||0)>=_localVersion){
+      mergeRemoteData(normalizeRemoteData(out.data).groups);
       buildTable();
     }
     showSyncStatus('ok');
