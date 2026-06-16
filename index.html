@@ -3,60 +3,76 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>公會每週排團</title>
+  <title>公會排班表</title>
   <style>
-    :root{color-scheme:dark;--bg:#10131f;--card:#191e2e;--line:#303950;--text:#f4f6ff;--muted:#aab3ca;--accent:#8b7cff;--good:#65d6b4;--bad:#ff8597}
-    *{box-sizing:border-box}body{margin:0;font-family:system-ui,"Noto Sans TC",sans-serif;background:radial-gradient(circle at top,#252348,var(--bg) 42rem);color:var(--text);min-height:100vh}
-    main{width:min(1080px,calc(100% - 24px));margin:auto;padding:36px 0 64px}h1{font-size:clamp(30px,6vw,48px);margin:0 0 8px}h2{margin:0 0 15px}p{color:var(--muted);line-height:1.6}
-    .tabs,.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.tabs{margin:22px 0}.card{background:#191e2ef2;border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:18px;box-shadow:0 20px 60px #0004}
-    label{display:grid;gap:7px;color:var(--muted);font-size:14px}input,select,button{font:inherit;border:1px solid var(--line);border-radius:10px;padding:11px 13px}input,select{color:var(--text);background:#101522;min-width:190px}
-    button{cursor:pointer;color:white;background:var(--accent);border-color:transparent;font-weight:700}.secondary,.tabs button:not(.active){background:#181d2a;border-color:var(--line);color:var(--muted)}button:disabled{opacity:.55}
-    .slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:9px}.slot{position:relative;border:1px solid var(--line);border-radius:12px;padding:11px;background:#111624;color:var(--muted);cursor:pointer}.slot input{position:absolute;opacity:0}
-    .slot:has(input:checked){border-color:var(--good);background:#16362f;color:#fff}.slot strong{display:block;color:var(--text);margin-bottom:3px}.list{display:grid;gap:10px}.item{border:1px solid var(--line);border-radius:12px;padding:14px;background:#111624}
-    .itemtop{display:flex;justify-content:space-between;gap:10px}.count,.good{color:var(--good);font-weight:800}.bad{color:var(--bad)}.names{color:var(--muted);font-size:14px;margin-top:6px}.status{min-height:24px;margin-top:12px;color:var(--good)}.error{color:var(--bad)}.hidden{display:none}.week{color:var(--good);font-weight:700}
+    :root{--bg:#f5f6f8;--grid:#d9dde5;--text:#111827;--muted:#667085;--yellow:#fff91f;--orange:#f2a51a;--red:#e83314;--pink:#c96f68;--name:#dec0b4;--blue:#2563eb;--green:#059669}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,"Noto Sans TC",sans-serif}main{width:min(1480px,calc(100% - 20px));margin:18px auto 44px}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.team-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    button,input{font:inherit;border:1px solid #b8c0cc;border-radius:8px;padding:8px 10px;background:white}button{cursor:pointer;font-weight:700}.primary{background:var(--blue);color:white;border-color:var(--blue)}.good{background:var(--green);color:white;border-color:var(--green)}.danger{color:#b42318}.team-tabs button.active{background:#111827;color:white}
+    .status{color:var(--green);min-height:22px;margin-left:auto}.status.error{color:#b42318}.sheet-wrap{overflow:auto;border:1px solid var(--grid);background:white;box-shadow:0 12px 28px #0001}
+    table{border-collapse:collapse;min-width:1180px;width:100%;table-layout:fixed}th,td{border:1px solid var(--grid);height:30px;text-align:center;vertical-align:middle;padding:0}
+    input.cell{width:100%;height:100%;border:0;border-radius:0;background:transparent;text-align:center;font-weight:700;padding:4px 6px}input.cell:focus{outline:2px solid #2563eb;outline-offset:-2px;background:#eef4ff}
+    .team-title{background:var(--yellow);color:#f00000;font-size:20px;font-weight:900}.date-title{background:var(--red);color:black;font-size:26px;font-weight:900}.head-name{background:#ffe571;font-size:24px;font-weight:900}.head-day{background:var(--orange);font-size:22px;font-weight:800}.head-note{background:var(--pink);font-size:22px;font-weight:800}.head-job{background:var(--red);font-size:22px;font-weight:800}.name-cell{background:var(--name)}.name-cell input{font-size:20px}.time-cell{cursor:pointer;font-weight:800}.time-cell:hover{background:#eef4ff}.member-actions{display:flex;justify-content:center;gap:5px;padding:3px}.member-actions button{padding:3px 7px;font-size:12px}.empty-row td{height:24px}
+    .modal{position:fixed;inset:0;display:none;place-items:center;background:#0006;padding:18px}.modal.open{display:grid}.dialog{width:min(420px,100%);background:white;border-radius:16px;padding:18px;box-shadow:0 24px 80px #0005}.dialog h2{margin:0 0 12px}.dialog .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}.dialog label{display:grid;gap:5px;color:var(--muted);font-size:14px}.quick{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.right{display:flex;justify-content:flex-end;gap:8px}
   </style>
 </head>
-<body><main>
-  <header><h1>公會每週排團</h1><p>每週四更新。成員填寫週四至下週三的空閒時間，團長可安排固定團隊。</p><div id="weekLabel" class="week"></div></header>
-  <nav class="tabs"><button data-view="fill" class="active">填寫時間</button><button data-view="summary">本週統計</button><button data-view="teams">固定團隊</button></nav>
+<body>
+<main>
+  <div class="toolbar">
+    <button id="addTeam" class="primary">新增團</button>
+    <button id="addMember" class="good">新增成員</button>
+    <button id="save" class="primary">儲存</button>
+    <button id="reload">重新載入</button>
+    <button id="deleteTeam" class="danger">刪除此團</button>
+    <span id="status" class="status"></span>
+  </div>
+  <div id="teamTabs" class="team-tabs"></div>
+  <div class="sheet-wrap"><table id="sheet"></table></div>
+</main>
 
-  <section id="fillView">
-    <div class="card"><h2>成員資料</h2><div class="row"><label>遊戲名稱<input id="memberName" maxlength="30" placeholder="例如：勇者阿明"></label><button id="loadMine" class="secondary">載入之前填寫</button></div></div>
-    <div class="card"><h2>本週有空時段</h2><div id="slots" class="slots"></div><div class="row" style="margin-top:18px"><button id="submit">送出／更新時間</button><button id="clear" class="secondary">清除勾選</button></div><div id="status" class="status"></div></div>
-  </section>
-
-  <section id="summaryView" class="hidden"><div class="card"><div class="itemtop"><h2>本週熱門時段</h2><button id="refresh" class="secondary">重新整理</button></div><div id="summary" class="list"></div><div id="summaryStatus" class="status"></div></div></section>
-
-  <section id="teamsView" class="hidden">
-    <div class="card"><h2>建立／更新固定團隊</h2><p>固定成員請用頓號或逗號分隔。使用相同團名再次儲存即可更新。</p><div class="row">
-      <label>團隊名稱<input id="teamName" maxlength="30" placeholder="例如：XX團"></label>
-      <label>固定星期<select id="teamDay"><option value="4">週四</option><option value="5">週五</option><option value="6">週六</option><option value="0">週日</option><option value="1">週一</option><option value="2">週二</option><option value="3">週三</option></select></label>
-      <label>固定時間<select id="teamTime"></select></label>
-      <label>固定成員<input id="teamMembers" placeholder="阿明、阿美、阿強"></label>
-      <button id="saveTeam">儲存團隊</button>
-    </div><div id="teamStatus" class="status"></div></div>
-    <div class="card"><div class="itemtop"><h2>團隊適合度</h2><button id="refreshTeams" class="secondary">重新整理</button></div><div id="teamList" class="list"></div></div>
-  </section>
+<div id="timeModal" class="modal">
+  <div class="dialog">
+    <h2>設定時間</h2>
+    <label>顯示文字<input id="timeText" placeholder="例如：19:00後、10:00-24:00、整天"></label>
+    <div class="row">
+      <label>開始時間<input id="startTime" type="time"></label>
+      <label>結束時間<input id="endTime" type="time"></label>
+    </div>
+    <div class="quick">
+      <button data-quick="整天">整天</button>
+      <button data-quick="19:00後">晚上7點後</button>
+      <button data-quick="21:00後">21:00後</button>
+      <button data-quick="">清空</button>
+    </div>
+    <div class="right"><button id="cancelTime">取消</button><button id="applyTime" class="primary">套用</button></div>
+  </div>
+</div>
 
 <script>
 const API_URL="https://script.google.com/macros/s/AKfycbw_CwG4rz3W1XpWSMmWaEJtpIhtxxHEqTtOWwGbzIN4Btl6eh9MVW8bhIVSY3TR9ME/exec";
-const TIMES=["20:00","21:00","22:00"];
 const $=id=>document.getElementById(id);
-function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
-function displayDate(key){return new Intl.DateTimeFormat("zh-TW",{month:"numeric",day:"numeric",weekday:"short"}).format(new Date(key+"T12:00:00"))}
-function cycleStart(){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+3)%7));return d}
-const start=cycleStart(),end=new Date(start);end.setDate(end.getDate()+6);const weekKey=dateKey(start);
-$("weekLabel").textContent=`本週填寫範圍：${displayDate(weekKey)} 至 ${displayDate(dateKey(end))}`;
-function renderSlots(){let html="";for(let i=0;i<7;i++){const d=new Date(start);d.setDate(d.getDate()+i);for(const t of TIMES){const value=`${dateKey(d)} ${t}`;html+=`<label class="slot"><input type="checkbox" value="${value}"><strong>${displayDate(dateKey(d))}</strong>${t}</label>`}}$("slots").innerHTML=html}
-$("teamTime").innerHTML=TIMES.map(t=>`<option>${t}</option>`).join("");
-function selected(){return [...document.querySelectorAll("#slots input:checked")].map(x=>x.value)}
-function status(msg,bad=false,target=$("status")){target.textContent=msg;target.classList.toggle("error",bad)}
-async function api(action,data={}){if(API_URL.startsWith("PASTE_"))throw Error("尚未連接 Google 試算表，請依 README 完成設定。");const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,...data})});const out=await r.json();if(!out.ok)throw Error(out.error||"資料處理失敗");return out}
-async function save(){const name=$("memberName").value.trim(),slots=selected();if(!name)return status("請填寫遊戲名稱。",true);if(!slots.length)return status("請至少勾選一個時段。",true);try{status("正在送出...");await api("save",{name,weekKey,slots});localStorage.setItem("guildMemberName",name);status("本週時間已成功更新。")}catch(e){status(e.message,true)}}
-async function loadMine(){const name=$("memberName").value.trim();if(!name)return status("請填寫遊戲名稱。",true);try{const r=await api("mine",{name,weekKey});const mine=new Set(r.slots||[]);document.querySelectorAll("#slots input").forEach(x=>x.checked=mine.has(x.value));status(mine.size?"已載入本週之前填寫的時間。":"本週尚未填寫。")}catch(e){status(e.message,true)}}
-async function loadSummary(){try{status("載入中...",false,$("summaryStatus"));const r=await api("summary",{weekKey});$("summary").innerHTML=(r.summary||[]).map(x=>`<div class="item"><div class="itemtop"><strong>${displayDate(x.slot.split(" ")[0])} ${x.slot.split(" ")[1]}</strong><span class="count">${x.names.length} 人</span></div><div class="names">${x.names.join("、")}</div></div>`).join("")||"<p>本週尚未有人填寫。</p>";status("",false,$("summaryStatus"))}catch(e){status(e.message,true,$("summaryStatus"))}}
-async function saveTeam(){const name=$("teamName").value.trim(),members=$("teamMembers").value.split(/[、,，]/).map(x=>x.trim()).filter(Boolean);if(!name)return status("請填寫團隊名稱。",true,$("teamStatus"));try{await api("saveTeam",{name,day:Number($("teamDay").value),time:$("teamTime").value,members});status("團隊已儲存。",false,$("teamStatus"));loadTeams()}catch(e){status(e.message,true,$("teamStatus"))}}
-async function loadTeams(){try{const r=await api("teams",{weekKey});$("teamList").innerHTML=(r.teams||[]).map(t=>`<div class="item"><div class="itemtop"><strong>${t.name}｜${t.dayName} ${t.time}</strong><span class="count">${t.availableAssigned.length}/${t.members.length} 固定成員有空</span></div><div class="names good">固定成員有空：${t.availableAssigned.join("、")||"無"}</div><div class="names bad">固定成員沒勾選：${t.unavailableAssigned.join("、")||"無"}</div><div class="names">其他適合成員：${t.suggested.join("、")||"無"}</div></div>`).join("")||"<p>尚未設定固定團隊。</p>"}catch(e){$("teamList").innerHTML=`<p class="bad">${e.message}</p>`}}
-function show(view){["fill","summary","teams"].forEach(v=>$(v+"View").classList.toggle("hidden",v!==view));document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("active",b.dataset.view===view));if(view==="summary")loadSummary();if(view==="teams")loadTeams()}
-renderSlots();$("memberName").value=localStorage.getItem("guildMemberName")||"";$("submit").onclick=save;$("loadMine").onclick=loadMine;$("clear").onclick=()=>document.querySelectorAll("#slots input").forEach(x=>x.checked=false);$("refresh").onclick=loadSummary;$("saveTeam").onclick=saveTeam;$("refreshTeams").onclick=loadTeams;document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>show(b.dataset.view));
-</script></main></body></html>
+const DEFAULT_DAYS=["禮拜四","禮拜五","禮拜六","禮拜日","禮拜一","禮拜二","禮拜三"];
+let state={teams:[]},activeTeam=0,editingCell=null;
+function newId(){return crypto.randomUUID?crypto.randomUUID():String(Date.now())}
+function defaultTeam(name="阿罵團"){return{id:newId(),title:name,dateRange:"6/18-6/24",days:[...DEFAULT_DAYS],members:[{name:"阿罵",job:"標",level:"162",note:"",times:["","","","","","",""]},{name:"木木",job:"冰雷",level:"174",note:"",times:["","","10:00-24:00","10:00-24:00","","",""]}]}}
+function status(text,bad=false){$("status").textContent=text;$("status").classList.toggle("error",bad)}
+async function api(action,data={}){const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,...data})});const out=await r.json();if(!out.ok)throw Error(out.error||"資料處理失敗");return out}
+function team(){if(!state.teams.length)state.teams.push(defaultTeam());if(!state.teams[activeTeam])activeTeam=0;return state.teams[activeTeam]}
+function renderTabs(){$("teamTabs").innerHTML=state.teams.map((t,i)=>`<button class="${i===activeTeam?"active":""}" data-team="${i}">${esc(t.title||"未命名團")}</button>`).join("");document.querySelectorAll("[data-team]").forEach(b=>b.onclick=()=>{activeTeam=Number(b.dataset.team);render()})}
+function render(){const t=team();renderTabs();$("sheet").innerHTML=`<colgroup><col style="width:170px"><col style="width:120px"><col style="width:90px">${t.days.map(()=>"<col style='width:170px'>").join("")}<col style="width:240px"><col style="width:95px"></colgroup><tr><th class="team-title" colspan="3"><input class="cell" data-field="title" value="${attr(t.title)}"></th><th class="date-title" colspan="${t.days.length}"><input class="cell" data-field="dateRange" value="${attr(t.dateRange)}"></th><th colspan="2"></th></tr><tr><th class="head-name">名稱</th><th class="head-job">職業</th><th class="head-job">等級</th>${t.days.map((d,i)=>`<th class="head-day"><input class="cell" data-day="${i}" value="${attr(d)}"></th>`).join("")}<th class="head-note">★備註時段</th><th class="head-job">操作</th></tr>${t.members.map((m,r)=>`<tr><td class="name-cell"><input class="cell" data-row="${r}" data-key="name" value="${attr(m.name)}"></td><td><input class="cell" data-row="${r}" data-key="job" value="${attr(m.job||"")}"></td><td><input class="cell" data-row="${r}" data-key="level" value="${attr(m.level||"")}"></td>${t.days.map((_,c)=>`<td class="time-cell" data-row="${r}" data-col="${c}">${esc((m.times||[])[c]||"")}</td>`).join("")}<td><input class="cell" data-row="${r}" data-key="note" value="${attr(m.note||"")}"></td><td><div class="member-actions"><button data-up="${r}">↑</button><button data-down="${r}">↓</button><button class="danger" data-delete="${r}">刪</button></div></td></tr>`).join("")}<tr class="empty-row">${"<td></td>".repeat(t.days.length+5)}</tr>`;bind()}
+function bind(){const t=team();document.querySelectorAll("[data-field]").forEach(i=>i.oninput=()=>{t[i.dataset.field]=i.value;renderTabs()});document.querySelectorAll("[data-day]").forEach(i=>i.oninput=()=>t.days[Number(i.dataset.day)]=i.value);document.querySelectorAll("[data-key]").forEach(i=>i.oninput=()=>t.members[Number(i.dataset.row)][i.dataset.key]=i.value);document.querySelectorAll(".time-cell").forEach(c=>c.onclick=()=>openTime(Number(c.dataset.row),Number(c.dataset.col)));document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{if(confirm("確定刪除此成員？")){t.members.splice(Number(b.dataset.delete),1);render()}});document.querySelectorAll("[data-up]").forEach(b=>b.onclick=()=>move(Number(b.dataset.up),-1));document.querySelectorAll("[data-down]").forEach(b=>b.onclick=()=>move(Number(b.dataset.down),1))}
+function move(i,d){const t=team(),n=i+d;if(n<0||n>=t.members.length)return;[t.members[i],t.members[n]]=[t.members[n],t.members[i]];render()}
+function addMember(){team().members.push({name:"新成員",job:"",level:"",note:"",times:["","","","","","",""]});render()}
+function addTeam(){const name=prompt("新團名稱","新團");if(!name)return;state.teams.push(defaultTeam(name));activeTeam=state.teams.length-1;render()}
+function deleteTeam(){if(state.teams.length<=1)return status("至少需要保留一個團。",true);if(confirm("確定刪除此團？")){state.teams.splice(activeTeam,1);activeTeam=Math.max(0,activeTeam-1);render()}}
+function openTime(row,col){editingCell={row,col};const value=(team().members[row].times||[])[col]||"";$("timeText").value=value;$("startTime").value="";$("endTime").value="";const m=value.match(/^(\d{2}:\d{2})(?:-(\d{2}:\d{2}))?/);if(m){$("startTime").value=m[1];$("endTime").value=m[2]||""}$("timeModal").classList.add("open")}
+function closeTime(){$("timeModal").classList.remove("open");editingCell=null}
+function applyTime(){if(!editingCell)return;let text=$("timeText").value.trim();const s=$("startTime").value,e=$("endTime").value;if(!text&&s&&e)text=`${s}-${e}`;if(!text&&s)text=`${s}後`;team().members[editingCell.row].times[editingCell.col]=text;closeTime();render()}
+async function load(){status("載入中...");try{const r=await api("loadSchedule");state=r.schedule&&r.schedule.teams?r.schedule:{teams:[defaultTeam()]};activeTeam=0;render();status("已載入。")}catch(e){state={teams:[defaultTeam()]};render();status(e.message,true)}}
+async function save(){status("儲存中...");try{await api("saveSchedule",{schedule:state});status("已儲存。")}catch(e){status(e.message,true)}}
+function esc(v){return String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
+function attr(v){return esc(v)}
+$("addMember").onclick=addMember;$("addTeam").onclick=addTeam;$("deleteTeam").onclick=deleteTeam;$("save").onclick=save;$("reload").onclick=load;$("cancelTime").onclick=closeTime;$("applyTime").onclick=applyTime;document.querySelectorAll("[data-quick]").forEach(b=>b.onclick=()=>{$("timeText").value=b.dataset.quick});$("startTime").oninput=()=>{if($("startTime").value&&!$("timeText").value)$("timeText").value=`${$("startTime").value}後`};$("endTime").oninput=()=>{if($("startTime").value&&$("endTime").value)$("timeText").value=`${$("startTime").value}-${$("endTime").value}`};load();
+</script>
+</body>
+</html>
