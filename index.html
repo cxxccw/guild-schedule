@@ -889,19 +889,19 @@ function onDropGroup(e,gi){e.preventDefault();document.querySelectorAll('tr.drag
 // ── Save/Load ─────────────────────────────────────────────────────────────────
 function onRaidTimeChange(){clearTimeout(onRaidTimeChange._t);onRaidTimeChange._t=setTimeout(saveData,1500);}
 async function saveData(){
-  showToast('? ????','#8bb8f0');
+  showToast('???...','#8bb8f0');
   _localVersion=Date.now();
   const slim=groups.map(g=>({name:g.name,colorIdx:g.colorIdx,raidTime:g.raidTime||'',members:g.members.map(m=>({name:m.name,lv:m.lv||'',job:m.job||'',days:m.days,times:m.times,note:m.note||'',nextWeek:m.nextWeek||null}))}));
   const payload={groups:slim,_v:_localVersion};
-  try{localStorage.setItem('raidSchedule',JSON.stringify(payload));}catch(e){}
+  try{localStorage.setItem('raidSchedule_google_v2',JSON.stringify(payload));}catch(e){}
   try{
     const r=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'saveSchedule',data:payload})});
     const out=await r.json();
     if(!out.ok) throw new Error(out.error||'save failed');
-    showToast('? ???????? Google ???');
+    showToast('???????? Google ???');
     showSyncStatus('ok');
   }catch(e){
-    showToast('?? ??????Google ?????'+e.message+'?','#e8c56a');
+    showToast('??????Google ?????'+e.message,'#e8c56a');
     showSyncStatus('error');
   }
 }
@@ -939,11 +939,14 @@ async function loadData(){
   }catch(e){console.warn('google load failed:',e.message);}
   if(!loaded){
     try{
-      const s=localStorage.getItem('raidSchedule');
+      const s=localStorage.getItem('raidSchedule_google_v2');
       if(s){const d=JSON.parse(s);if(isValidRemoteData(d)){mergeRemoteData(d.groups);_localVersion=d._v||0;loaded=true;}}
     }catch(e){}
-    showSyncStatus(loaded?'ok':'error');
-    if(!loaded) saveData();
+  }
+  if(!loaded){
+    groups=JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+    showSyncStatus('error');
+    setTimeout(saveData,1000);
   }
   updateDateHeader();updateWeekTabs();buildTable();
   setTimeout(autoRefresh,300000);
