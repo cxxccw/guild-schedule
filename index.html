@@ -277,6 +277,16 @@ function isNextWeekUnlocked() {
   const dow = new Date().getDay();
   return dow===6||dow===0||dow===1||dow===2||dow===3;
 }
+// Which week to show on load: Sun(0)-Wed(3) => next, Thu(4)-Sat(6) => this
+function defaultWeekView(){
+  const dow = new Date().getDay();
+  return (dow>=0 && dow<=3) ? 'next' : 'this';
+}
+// Toggle the active tab highlight
+function setActiveTab(view){
+  document.getElementById('wtab-this').classList.toggle('active', view==='this');
+  document.getElementById('wtab-next').classList.toggle('active', view==='next');
+}
 function msToCountdown(ms) {
   const h=Math.floor(ms/3600000), mn=Math.floor((ms%3600000)/60000);
   if(h>24) return Math.floor(h/24)+'天後';
@@ -313,13 +323,13 @@ let groups = [
       { name:"GiByMo",      lv:"173", job:"黑騎士",
         days:["partial","partial","all-day","all-day","no","no","no"],
         times:["晚上7點後","晚上7點後","整天","整天","✗","✗","✗"],
-        note:"06/11 & 06/12 22:00–22:30集合（3–4場）" },
+        note:"06/11 & 06/12 22:00–22:30集合（3–4場）", nextWeek:{"days":["no","no","no","no","partial","partial","partial"],"times":["✗","✗","✗","✗","21:00後","21:00後","21:00後"]} },
       { name:"攸咪c",        lv:"171", job:"主教",
         days:["partial","partial","partial","partial","partial","partial","partial"],
-        times:["19:00–01:00","19:00–01:00","15:00–02:00","15:00–01:00","19:00–01:00","19:00–01:00","19:00–01:00"], note:"" },
+        times:["19:00–01:00","19:00–01:00","15:00–02:00","15:00–01:00","19:00–01:00","19:00–01:00","19:00–01:00"], note:"", nextWeek:{"days":["partial","partial","partial","partial","partial","partial","partial"],"times":["19:00–02:00","15:00–01:00","15:00–02:00","19:00–01:00","19:00–01:00","19:00–01:00","19:00–01:00"]} },
       { name:"怕今生是朕",    lv:"169", job:"聖騎士",
         days:["all-day","all-day","partial","all-day","all-day","all-day","all-day"],
-        times:["都可以","都可以","23:15後","都可以","都可以","都可以","都可以"], note:"" },
+        times:["都可以","都可以","23:15後","都可以","都可以","都可以","都可以"], note:"1-2不確定 有機會可以提早", nextWeek:{"days":["empty","empty","empty","partial","partial","partial","empty"],"times":["—","—","—","22:45後","23:00後","23:00後","—"]} },
       { name:"發發發發發",    lv:"169", job:"箭神",
         days:["partial","partial","partial","partial","partial","partial","partial"],
         times:["晚上7點後","晚上7點後","晚上7點後","避開另一團","晚上7點後","晚上7點後","晚上7點後"], note:"", nextWeek:{"days":["partial","partial","partial","all-day","partial","partial","partial"],"times":["19:00後","19:00後","19:00後","整天","19:00後","19:00後","19:00後"]} },
@@ -344,7 +354,7 @@ let groups = [
       { name:"黑咖啡超苦",    lv:"160", job:"暗影神偷",
         days:["partial","partial","partial","partial","partial","all-day","all-day"],
         times:["22:30前","22:30前","22:30前","22:30前","22:30前","整天","整天"], note:"", nextWeek:{"days":["all-day","all-day","all-day","all-day","partial","partial","partial"],"times":["都可以","都可以","都可以","都可以","19:00後","19:00後","19:00後"]} },,
-      { name:"心渡", lv:"", job:"", days:["empty","empty","empty","empty","empty","empty","empty"], times:["—","—","—","—","—","—","—"], note:"" }
+      { name:"心渡", lv:"", job:"", days:["empty","empty","empty","empty","empty","empty","empty"], times:["—","—","—","—","—","—","—"], note:"", nextWeek:{"days":["partial","partial","no","partial","partial","partial","partial"],"times":["22:00後","22:00後","✗","22:00後","22:00後","22:00後","22:00後"]} }
     ]
   },
   {
@@ -352,7 +362,7 @@ let groups = [
     members:[
       { name:"阿罵",         lv:"",  job:"夜使者",
         days:["partial","partial","partial","all-day","partial","partial","partial"],
-        times:["19:00–23:00","19:00–23:00","19:00後","整日","19:00–23:00","19:00–23:00","19:00–23:00"], note:"" },
+        times:["19:00–23:00","19:00–23:00","19:00後","整日","19:00–23:00","19:00–23:00","19:00–23:00"], note:"禮拜四視情況配合、禮拜六凌晨過後", nextWeek:{"days":["partial","no","partial","partial","partial","partial","partial"],"times":["19:00後","✗","凌晨過後","視情況配合","19:00後","21:00後","19:00後"]} },
       { name:"世俗",         lv:"",  job:"神射手",
         days:["partial","partial","partial","all-day","partial","partial","partial"],
         times:["19:00–23:00","19:00–23:00","暫定晚上可","整日","19:00–23:00","19:00–23:00","19:00–23:00"], note:"", nextWeek:{"days":["partial","all-day","all-day","all-day","partial","partial","partial"],"times":["19:00後","整天","整天","整天","19:00後","19:00後","19:00後"]} },
@@ -364,7 +374,7 @@ let groups = [
         times:["✗","✗","整天","整天","✗","✗","✗"], note:"" },
       { name:"怕今生是朕",   lv:"",  job:"箭神",
         days:["all-day","all-day","partial","all-day","no","no","no"],
-        times:["整天","整天","23:15後","整天","✗","✗","✗"], note:"" },
+        times:["整天","整天","23:15後","整天","✗","✗","✗"], note:"", nextWeek:{"days":["partial","all-day","all-day","partial","empty","empty","empty"],"times":["23:00後","整天","整天","22:45後","—","—","—"]} },
       { name:"大哥",         lv:"",  job:"主教",
         days:["partial","partial","all-day","all-day","partial","partial","partial"],
         times:["19:00–23:00","19:00後","整天","整天","19:00–23:00","19:00–23:00","19:00–23:00"], note:"", nextWeek:{"days":["partial","all-day","all-day","all-day","partial","partial","partial"],"times":["19:00後","整天","整天","整天","19:00後","19:00後","19:00後"]} },
@@ -379,8 +389,8 @@ let groups = [
         times:["19:00後","19:00後","20:00後","整天","19:00後","19:00後","19:00後"], note:"", nextWeek:{"days":["partial","partial","partial","all-day","partial","partial","partial"],"times":["19:00後","19:00後","20:00後","整天","19:00後","19:00後","19:00後"]} },
       { name:"GeniusWEN",  lv:"",  job:"黑騎士",
         days:["partial","partial","all-day","all-day","partial","partial","partial"],
-        times:["20:00後","20:00後","整天","整天","20:00後","20:00後","20:00後"], note:"" },
-      { name:"阿余", lv:"", job:"", days:["empty","empty","empty","empty","empty","empty","empty"], times:["—","—","—","—","—","—","—"], note:"" },
+        times:["20:00後","20:00後","整天","整天","20:00後","20:00後","20:00後"], note:"", nextWeek:{"days":["partial","all-day","partial","all-day","partial","partial","partial"],"times":["20:00後","整天","20:00後","整天","20:00後","20:00後","20:00後"]} },
+      { name:"阿余", lv:"", job:"", days:["empty","empty","empty","empty","empty","empty","empty"], times:["—","—","—","—","—","—","—"], note:"", nextWeek:{"days":["no","no","no","partial","partial","no","no"],"times":["✗","✗","✗","12:30後","18:00前","✗","✗"]} },
       { name:"福氣", lv:"", job:"", days:["empty","empty","empty","empty","empty","empty","empty"], times:["—","—","—","—","—","—","—"], note:"" }
     ]
   },
@@ -420,7 +430,7 @@ let groups = [
         times:["—","—","—","—","—","—","—"], note:"1800後都可以配合", nextWeek:{"days":["partial","partial","partial","partial","partial","partial","partial"],"times":["18:00後","18:00後","18:00後","18:00後","18:00後","18:00後","18:00後"]} },
       { name:"前哥",          lv:"163", job:"主教",
         days:["empty","empty","empty","empty","empty","empty","empty"],
-        times:["—","—","—","—","—","—","—"], note:"" },
+        times:["—","—","—","—","—","—","—"], note:"提前約就好", nextWeek:{"days":["all-day","all-day","all-day","all-day","all-day","all-day","all-day"],"times":["都可以","都可以","都可以","都可以","都可以","整天","都可以"]} },
       { name:"WEI",          lv:"158", job:"暗影神偷", jobNote:"煙30",
         days:["empty","empty","empty","empty","empty","empty","empty"],
         times:["—","—","—","—","—","—","—"], note:"", nextWeek:{"days":["partial","partial","partial","partial","partial","all-day","no"],"times":["23:30後","23:30後","23:30後","23:30後","23:30後","整天","✗"]} },
@@ -563,8 +573,7 @@ function updateWeekTabs(){
 }
 function switchWeek(w){
   currentWeekView=w;
-  document.getElementById('wtab-this').classList.toggle('active',w==='this');
-  document.getElementById('wtab-next').classList.toggle('active',w==='next');
+  setActiveTab(w);
   DAYS_LABEL=getWeekDaysFrom(w==='next'?getNextThursday():getThisThursday());
   updateDateHeader(); buildTable();
 }
@@ -1173,7 +1182,10 @@ function jobDisplay(job){
 }
 
 // ── Start ─────────────────────────────────────────────────────────────────────
-DAYS_LABEL=computeWeekDays();
+// Default week by weekday: Sun-Wed -> next, Thu-Sat -> this
+currentWeekView = defaultWeekView();
+setActiveTab(currentWeekView);
+DAYS_LABEL = getWeekDaysFrom(currentWeekView==='next' ? getNextThursday() : getThisThursday());
 updateDateHeader();
 updateWeekTabs();
 buildTable();
