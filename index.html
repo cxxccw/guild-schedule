@@ -494,9 +494,11 @@ function overlapWindow(members,di){
   return{start:ws,end:we};
 }
 function getGroupAvail(members){
+  members=(members||[]).filter(m=>m&&Array.isArray(m.days)&&Array.isArray(m.times));
   return DAYS_LABEL.map((_,di)=>{const w=overlapWindow(members,di);return w?{timeStr:windowToStr(w),window:w}:null;});
 }
 function getSuggestions(members){
+  members=(members||[]).filter(m=>m&&Array.isArray(m.days)&&Array.isArray(m.times));
   const sugs=[];
   DAYS_LABEL.forEach((day,di)=>{
     const filled=members.filter(m=>m.days[di]!=='empty');
@@ -512,9 +514,12 @@ function getSuggestions(members){
   return sugs;
 }
 function getFilledMembers(gi){
-  return groups[gi].members.filter(m=>{
+  const g=groups[gi];
+  if(!g||!Array.isArray(g.members)) return [];
+  return g.members.filter(m=>{
+    if(!m) return false;
     const d=currentWeekView==='next'?(m.nextWeek||{days:[]}).days:m.days;
-    return d.some(x=>x!=='empty');
+    return Array.isArray(d)&&d.some(x=>x!=='empty');
   });
 }
 function getMemberWeekData(m,week){
@@ -609,6 +614,7 @@ function buildTeamFilter(){
 function buildTable(){
   const tbody=document.getElementById('tableBody');
   tbody.innerHTML='';
+  groups=(groups||[]).filter(g=>g&&g.name).map(g=>{g.members=(g.members||[]).filter(m=>m&&m.name);return g;});
   const lastGi=groups.length-1;
   updateWeekTabs(); buildTeamFilter();
   if(currentWeekView==='next'&&!isNextWeekUnlocked()){
@@ -689,7 +695,7 @@ function checkAutoThirdTeam(){
   if(!panel) return;
   const lastGi=groups.length-1;
   const scatter=groups[lastGi];
-  if(scatter.members.length<12){panel.innerHTML='';return;}
+  if(!scatter||!Array.isArray(scatter.members)||scatter.members.length<12){panel.innerHTML='';return;}
   const nums=groups.map(g=>{const m=g.name.match(/第(\d+)團/);return m?parseInt(m[1]):0;}).filter(n=>n>0);
   const nextNum=nums.length?Math.max(...nums)+1:3;
   const vd=[];
