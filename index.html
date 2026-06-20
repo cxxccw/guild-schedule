@@ -897,7 +897,7 @@ function activateCell(gi,mi,di){
 }
 function onTimeChange(gi,mi,di,raw){applyTimeChange(gi,mi,di,raw,null);}
 function applyTimeChange(gi,mi,di,raw,forceType){
-  const val=(forceType!==null&&forceType!==undefined)?raw:normalizeTime(raw);
+  const val=(forceType!==null&&forceType!==undefined)?raw:((String(raw||'').trim()==='?'||String(raw||'').trim()==='?')?'':normalizeTime(raw));
   const mem=groups[gi].members[mi];
   const wd=getMemberWeekData(mem,currentWeekView);
   wd.times[di]=val===''?'—':val;
@@ -913,17 +913,19 @@ function applyTimeChange(gi,mi,di,raw,forceType){
 // ── Normalize time ────────────────────────────────────────────────────────────
 function normalizeTime(raw){
   if(!raw) return raw;
-  const t=raw.trim();
-  if(/^(都可以?|都行|[Oo]|整天|整日|都可)$/.test(t)) return '整天';
-  if(t==='—'||t==='✗'||t==='整天'||t==='可') return t;
-  let s=t.replace(/：/g,':');
-  s=s.replace(/^(\d{2})(\d{2})\s*[-–]\s*(\d{2})(\d{2})$/,'$1:$2–$3:$4');
+  let t=String(raw).trim().replace(/\u540e/g,'\u5F8C').replace(/\uFF1A/g,':').replace(/[\uFF5E~]/g,'-');
+  if(t==='?'||t==='\uFF1F') return '';
+  if(/^(\u90FD\u53EF\u4EE5?|\u90FD\u884C|\u90FD\u53EF|\u53EF\u4EE5|\u53EF|[Oo]|\u5168\u5929|\u6574\u5929|\u6574\u65E5|\u5168\u65E5)$/.test(t)) return '\u6574\u5929';
+  if(/^(\u4E0D\u884C|\u4E0D\u80FD|\u4E0D\u53EF|\u7121\u6CD5|\u65E0\u6CD5|\u4E0D\u53EF\u4EE5|[Xx]|\u2717)$/.test(t)) return '\u2717';
+  if(t==='\u2014'||t==='\u2717'||t==='\u6574\u5929'||t==='\u53EF') return t;
+  let s=t;
+  s=s.replace(/^(\d{2})(\d{2})\s*[-\u2013]\s*(\d{2})(\d{2})$/,'$1:$2\u2013$3:$4');
   s=s.replace(/^(\d{2})(\d{2})$/,'$1:$2');
-  const rm=s.match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
-  if(rm) return s;
-  const bm=s.match(/^(.+?)\s*前$/); if(bm){const v=parseHM(bm[1]);if(v!==null)return minsToStr(v)+'前';}
-  const v=parseHM(s); if(v!==null) return minsToStr(v)+'後';
-  return '✗';
+  const rm=s.match(/(\d{1,2}:\d{2})\s*[-\u2013]\s*(\d{1,2}:\d{2})/);
+  if(rm) return s.replace(/-/g,'\u2013');
+  const bm=s.match(/^(.+?)\s*\u524D$/); if(bm){const v=parseHM(bm[1]);if(v!==null)return minsToStr(v)+'\u524D';}
+  const v=parseHM(s); if(v!==null) return minsToStr(v)+'\u5F8C';
+  return '\u2717';
 }
 function parseHM(s){
   s=(s||'').trim();
@@ -1190,7 +1192,21 @@ function weekDateForView(week){return week==='next'?getNextThursday():getThisThu
 function weekKeyForView(week){return dateKey(weekDateForView(week));}
 function previousWeekKey(){const d=getThisThursday();d.setDate(d.getDate()-7);return dateKey(d);}
 function blankWeekData(){return{days:Array(7).fill('empty'),times:Array(7).fill('?'),note:''};}
-function normalizeWeekData(w){if(!w||typeof w!=='object')w={};let days=Array.isArray(w.days)?w.days.slice():String(w.days||'').trim().split(/\s+/).filter(Boolean);let times=Array.isArray(w.times)?w.times.slice():String(w.times||'').trim().split(/\s+/).filter(Boolean);while(days.length<7)days.push('empty');while(times.length<7)times.push('?');return{days:days.slice(0,7),times:times.slice(0,7),note:w.note||''};}
+function normalizeWeekData(w){
+  if(!w||typeof w!=='object') w={};
+  let days=Array.isArray(w.days)?w.days.slice():String(w.days||'').trim().split(/\s+/).filter(Boolean);
+  let times=Array.isArray(w.times)?w.times.slice():String(w.times||'').trim().split(/\s+/).filter(Boolean);
+  while(days.length<7) days.push('empty');
+  while(times.length<7) times.push('\u2014');
+  days=days.slice(0,7).map(x=>['empty','partial','all-day','no'].includes(x)?x:'empty');
+  times=times.slice(0,7).map((t,i)=>{
+    t=String(t||'').trim();
+    if(days[i]==='empty') return '\u2014';
+    if(!t||t==='?'||t==='\uFF1F'||t==='undefined'||t==='null') return days[i]==='no'?'\u2717':'\u2014';
+    return t.replace(/\u540e/g,'\u5F8C').replace(/\u5168\u5929/g,'\u6574\u5929');
+  });
+  return{days,times,note:w.note||''};
+}
 function cloneWeekData(w){const n=normalizeWeekData(w);return{days:n.days.slice(),times:n.times.slice(),note:n.note||''};}
 function ensureMemberWeeks(m){if(!m)return{};const hadWeeks=m.weeks&&typeof m.weeks==='object'&&!Array.isArray(m.weeks)&&Object.keys(m.weeks).length>0;if(!hadWeeks)m.weeks={};else Object.keys(m.weeks).forEach(k=>{m.weeks[k]=normalizeWeekData(m.weeks[k]);});if(!hadWeeks){const prevKey=previousWeekKey();const thisKey=weekKeyForView('this');if(Array.isArray(m.days)||Array.isArray(m.times))m.weeks[prevKey]=normalizeWeekData({days:m.days,times:m.times,note:m.note||''});if(m.nextWeek&&typeof m.nextWeek==='object')m.weeks[thisKey]=normalizeWeekData(m.nextWeek);else if(!m.weeks[thisKey])m.weeks[thisKey]=blankWeekData();}return m.weeks;}
 function getMemberWeekData(m,week){const key=weekKeyForView(week);ensureMemberWeeks(m);if(!m.weeks[key])m.weeks[key]=blankWeekData();m.weeks[key]=normalizeWeekData(m.weeks[key]);return m.weeks[key];}
