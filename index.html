@@ -484,21 +484,24 @@ const TYPE_LABELS = {'all-day':'整天','partial':'部分可','no':'✗ 不可',
 
 // ── Time parsing ──────────────────────────────────────────────────────────────
 function parseTimeRange(t) {
-  if(!t||t==='—'||t==='✗') return null;
-  const s=t.replace(/：/g,':').replace(/[～~]/g,'–').trim();
-  if(/整天|整日|都可以|可/.test(s)) return {start:0,end:null,crossMidnight:false};
-  if(/避開|不一定|暫定/.test(s)) return null;
+  if(!t||t==='\u2014'||t==='\u2717') return null;
+  const s=String(t).replace(/\uFF1A/g,':').replace(/[\uFF5E~]/g,'\u2013').replace(/\u540e/g,'\u5F8C').trim();
+  const compact=s.replace(/[\s\u200B-\u200D\uFEFF]/g,'');
+  if(/(\u6574\u5929|\u6574\u65E5|\u5168\u5929|\u5168\u65E5|\u90FD\u53EF\u4EE5?|\u90FD\u53EF|\u53EF\u4EE5)/.test(compact)) return {start:0,end:null,crossMidnight:false};
+  if(/\u907F\u958B|\u4E0D\u4E00\u5B9A|\u66AB\u5B9A/.test(s)) return null;
   function hm(str) {
-    str=(str||'').trim();
+    str=String(str||'').trim().replace(/\uFF1A/g,':');
     let m=str.match(/^(\d{1,2}):(\d{2})/); if(m) return parseInt(m[1])*60+parseInt(m[2]);
     m=str.match(/^(\d{4})$/); if(m) return parseInt(str.slice(0,2))*60+parseInt(str.slice(2));
-    m=str.match(/晚[上]?(\d+)點(半)?/); if(m){let h=parseInt(m[1]);if(h<12)h+=12;return h*60+(m[2]?30:0);}
-    m=str.match(/下午(\d+)點(半)?/); if(m){let h=parseInt(m[1]);if(h<12)h+=12;return h*60+(m[2]?30:0);}
+    m=str.match(/\u665A[\u4E0A]?(\d+)\u9EDE(\u534A)?/); if(m){let h=parseInt(m[1]);if(h<12)h+=12;return h*60+(m[2]?30:0);}
+    m=str.match(/\u4E0B\u5348(\d+)\u9EDE(\u534A)?/); if(m){let h=parseInt(m[1]);if(h<12)h+=12;return h*60+(m[2]?30:0);}
     return null;
   }
-  const bm=s.match(/^(.+?)\s*前$/);
+  const bm=s.match(/^(.+?)\s*\u524D$/);
   if(bm){const v=hm(bm[1]);if(v!==null)return{start:0,end:v,crossMidnight:false};}
-  const rm=s.match(/(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})/);
+  const am=s.match(/^(.+?)\s*\u5F8C$/);
+  if(am){const v=hm(am[1]);if(v!==null)return{start:v,end:null,crossMidnight:false};}
+  const rm=s.match(/(\d{1,2}:\d{2}|\d{4})\s*[-\u2013\u2014]\s*(\d{1,2}:\d{2}|\d{4})/);
   if(rm){const st=hm(rm[1]);let en=hm(rm[2]);if(st!==null&&en!==null){const cross=en<st;if(cross)en+=24*60;return{start:st,end:en,crossMidnight:cross};}}
   const v=hm(s); if(v!==null) return{start:v,end:null,crossMidnight:false};
   return null;
@@ -913,25 +916,29 @@ function applyTimeChange(gi,mi,di,raw,forceType){
 // ── Normalize time ────────────────────────────────────────────────────────────
 function normalizeTime(raw){
   if(!raw) return raw;
-  let t=String(raw).trim().replace(/\u540e/g,'\u5F8C').replace(/\uFF1A/g,':').replace(/[\uFF5E~]/g,'-');
+  let t=String(raw).replace(/[\u200B-\u200D\uFEFF]/g,'').trim().replace(/\u540e/g,'\u5F8C').replace(/\uFF1A/g,':').replace(/[\uFF5E~]/g,'\u2013');
   if(t==='?'||t==='\uFF1F') return '';
-  if(/^(\u90FD\u53EF\u4EE5?|\u90FD\u884C|\u90FD\u53EF|\u53EF\u4EE5|\u53EF|[Oo]|\u5168\u5929|\u6574\u5929|\u6574\u65E5|\u5168\u65E5)$/.test(t)) return '\u6574\u5929';
-  if(/^(\u4E0D\u884C|\u4E0D\u80FD|\u4E0D\u53EF|\u7121\u6CD5|\u65E0\u6CD5|\u4E0D\u53EF\u4EE5|[Xx]|\u2717)$/.test(t)) return '\u2717';
+  const compact=t.replace(/\s+/g,'');
+  if(/^(\u90FD\u53EF\u4EE5?|\u90FD\u884C|\u90FD\u53EF|\u53EF\u4EE5|\u53EF|[Oo]|\u5168\u5929|\u6574\u5929|\u6574\u5929\u53EF\u4EE5|\u5168\u5929\u53EF\u4EE5|\u6574\u65E5|\u5168\u65E5)$/.test(compact)) return '\u6574\u5929';
+  if(/^(\u4E0D\u884C|\u4E0D\u80FD|\u4E0D\u53EF|\u7121\u6CD5|\u65E0\u6CD5|\u4E0D\u53EF\u4EE5|[Xx]|\u2717)$/.test(compact)) return '\u2717';
   if(t==='\u2014'||t==='\u2717'||t==='\u6574\u5929'||t==='\u53EF') return t;
   let s=t;
-  s=s.replace(/^(\d{2})(\d{2})\s*[-\u2013]\s*(\d{2})(\d{2})$/,'$1:$2\u2013$3:$4');
+  s=s.replace(/^(\d{2})(\d{2})\s*[-\u2013\u2014]\s*(\d{2})(\d{2})$/,'$1:$2\u2013$3:$4');
   s=s.replace(/^(\d{2})(\d{2})$/,'$1:$2');
-  const rm=s.match(/(\d{1,2}:\d{2})\s*[-\u2013]\s*(\d{1,2}:\d{2})/);
+  const rm=s.match(/(\d{1,2}:\d{2})\s*[-\u2013\u2014]\s*(\d{1,2}:\d{2})/);
   if(rm) return s.replace(/-/g,'\u2013');
   const bm=s.match(/^(.+?)\s*\u524D$/); if(bm){const v=parseHM(bm[1]);if(v!==null)return minsToStr(v)+'\u524D';}
+  const am=s.match(/^(.+?)\s*\u5F8C$/); if(am){const v=parseHM(am[1]);if(v!==null)return minsToStr(v)+'\u5F8C';}
   const v=parseHM(s); if(v!==null) return minsToStr(v)+'\u5F8C';
   return '\u2717';
 }
 function parseHM(s){
-  s=(s||'').trim();
-  let m=s.match(/^(\d{1,2}):(\d{2})/); if(m){let h=parseInt(m[1]),mn=parseInt(m[2]);if(h<12)h+=12;return h*60+mn;}
-  m=s.match(/晚[上]?(\d+)點(半)?/); if(m){let h=parseInt(m[1]);if(h<12)h+=12;return h*60+(m[2]?30:0);}
-  m=s.match(/^(\d+)$/); if(m){let h=parseInt(m[1]);if(h<12)h+=12;return h*60;}
+  s=String(s||'').trim().replace(/[\u200B-\u200D\uFEFF]/g,'').replace(/\uFF1A/g,':');
+  let m=s.match(/^(\d{1,2}):(\d{2})/); if(m){let h=parseInt(m[1]),mn=parseInt(m[2]);return h*60+mn;}
+  m=s.match(/^(\d{4})$/); if(m) return parseInt(s.slice(0,2))*60+parseInt(s.slice(2));
+  m=s.match(/\u665A[\u4E0A]?(\d+)\u9EDE(\u534A)?/); if(m){let h=parseInt(m[1]);if(h<12)h+=12;return h*60+(m[2]?30:0);}
+  m=s.match(/\u4E0B\u5348(\d+)\u9EDE(\u534A)?/); if(m){let h=parseInt(m[1]);if(h<12)h+=12;return h*60+(m[2]?30:0);}
+  m=s.match(/^(\d{1,2})$/); if(m){let h=parseInt(m[1]);if(h<12)h+=12;return h*60;}
   return null;
 }
 
@@ -1200,7 +1207,7 @@ function normalizeWeekData(w){
   while(times.length<7) times.push('\u2014');
   days=days.slice(0,7).map(x=>['empty','partial','all-day','no'].includes(x)?x:'empty');
   times=times.slice(0,7).map((t,i)=>{
-    t=String(t||'').trim();
+    t=String(t||'').replace(/[\u200B-\u200D\uFEFF]/g,'').trim();
     if(days[i]==='empty') return '\u2014';
     if(!t||t==='?'||t==='\uFF1F'||t==='undefined'||t==='null') return days[i]==='no'?'\u2717':'\u2014';
     return t.replace(/\u540e/g,'\u5F8C').replace(/\u5168\u5929/g,'\u6574\u5929');
