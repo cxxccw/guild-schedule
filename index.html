@@ -205,35 +205,6 @@ select.signup-input optgroup{background:#0f1117;color:var(--gold);font-weight:70
 </div>
 <div class="panels-wrap"><div id="thirdTeamPanel"></div></div>
 
-<!-- Password Modal -->
-<div id="pwModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
-  <div id="pwBox" style="background:#181c27;border:1px solid #2a2a42;border-radius:12px;padding:32px 28px;width:300px;max-width:90vw;text-align:center">
-    <div style="font-size:1.8rem;margin-bottom:12px">🔐</div>
-    <div class="pw-title" id="pwTitle">輸入密碼</div>
-    <div class="pw-sub" id="pwSub">此操作需要密碼</div>
-    <input id="pwInput" type="password" placeholder="••••" style="width:100%;background:#0f1117;border:1px solid #272d40;border-radius:6px;color:#cdd2e0;font-size:1.1rem;padding:10px 14px;outline:none;text-align:center;letter-spacing:.3em;font-family:inherit;box-sizing:border-box" onkeydown="if(event.key==='Enter')submitPw();if(event.key==='Escape')closePw()">
-    <div id="pwError" style="display:none;color:#f08080;font-size:.72rem;margin-top:8px">密碼錯誤</div>
-    <div style="display:flex;gap:10px;margin-top:18px">
-      <button onclick="closePw()" style="flex:1;padding:9px;border-radius:6px;border:1px solid #272d40;background:none;color:#5a6180;cursor:pointer;font-family:inherit;font-size:.8rem">取消</button>
-      <button onclick="submitPw()" style="flex:1;padding:9px;border-radius:6px;border:1px solid #d4a843;background:rgba(212,168,67,.12);color:#d4a843;cursor:pointer;font-family:inherit;font-size:.8rem;font-weight:600">確認</button>
-    </div>
-  </div>
-</div>
-
-<!-- Clear Modal -->
-<div id="clearModal" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:300">
-  <div style="background:#181c27;border:1px solid var(--gold);border-radius:10px;padding:16px 20px;width:360px;max-width:92vw;box-shadow:0 8px 32px rgba(0,0,0,.6)">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-      <span>🗑️</span><div id="clearTitle" style="font-size:.82rem;font-weight:600;color:#d4a843"></div>
-    </div>
-    <div id="clearDesc" style="font-size:.72rem;color:#5a6180;margin-bottom:12px;line-height:1.6;white-space:pre-wrap"></div>
-    <div style="display:flex;gap:8px">
-      <button id="clearNoBtn" style="flex:1;padding:7px;border-radius:6px;border:1px solid #e05252;background:rgba(224,82,82,.15);color:#f08080;cursor:pointer;font-family:inherit;font-size:.75rem;font-weight:700">✕ 否，只改我的</button>
-      <button id="clearYesBtn" style="flex:1;padding:7px;border-radius:6px;border:1px solid #3a3a52;background:rgba(255,255,255,.05);color:#9a9ab0;cursor:pointer;font-family:inherit;font-size:.75rem">✅ 是，清除全團</button>
-    </div>
-  </div>
-</div>
-
 <!-- Signup Modal -->
 <div id="signupModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
   <div style="background:#181c27;border:1px solid #d4a843;border-radius:12px;padding:28px 24px;width:380px;max-width:92vw;max-height:90vh;overflow-y:auto">
@@ -353,7 +324,7 @@ let groups = [
         times:["19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00","19:00–02:00"], note:"", nextWeek:{"days":["partial","partial","partial","partial","partial","partial","partial"],"times":["19:00後","19:00後","19:00後","19:00後","19:00後","19:00後","19:00後"]} },
       { name:"黑咖啡超苦",    lv:"160", job:"暗影神偷",
         days:["partial","partial","partial","partial","partial","all-day","all-day"],
-        times:["22:30前","22:30前","22:30前","22:30前","22:30前","整天","整天"], note:"", nextWeek:{"days":["all-day","all-day","all-day","all-day","partial","partial","partial"],"times":["都可以","都可以","都可以","都可以","19:00後","19:00後","19:00後"]} },,
+        times:["22:30前","22:30前","22:30前","22:30前","22:30前","整天","整天"], note:"", nextWeek:{"days":["all-day","all-day","all-day","all-day","partial","partial","partial"],"times":["都可以","都可以","都可以","都可以","19:00後","19:00後","19:00後"]} },
       { name:"心渡", lv:"", job:"", days:["empty","empty","empty","empty","empty","empty","empty"], times:["—","—","—","—","—","—","—"], note:"", nextWeek:{"days":["partial","partial","no","partial","partial","partial","partial"],"times":["22:00後","22:00後","✗","22:00後","22:00後","22:00後","22:00後"]} }
     ]
   },
@@ -556,11 +527,6 @@ function getFilledMembers(gi){
     return Array.isArray(d)&&d.some(x=>x!=='empty');
   });
 }
-function getMemberWeekData(m,week){
-  if(week==='next'){if(!m.nextWeek)m.nextWeek={days:Array(7).fill('empty'),times:Array(7).fill('—')};return m.nextWeek;}
-  return{days:m.days,times:m.times};
-}
-
 // ── Week tabs UI ──────────────────────────────────────────────────────────────
 function updateWeekTabs(){
   const thu=getThisThursday(),nxt=getNextThursday();
@@ -727,7 +693,7 @@ function buildTable(){
     const countBadge=isScat?'<span class="cnt-badge">'+count+' 人</span>':'<span class="cnt-badge'+(countOk?'':' cnt-warn')+'">'+ count+'/12'+(countOk?'':' ⚠')+'</span>';
     const barTr=document.createElement('tr');
     barTr.className='group-row';
-    barTr.innerHTML='<td colspan="9" style="padding:0"><div class="group-avail-bar" style="border-color:'+color+'"><button class="group-collapse-btn" onclick="toggleGroup('+gi+')">'+(isCol?'▸':'▾')+'</button><span class="avail-label" style="color:'+color+'">'+emoji+'<input class="ef gname-ef" value="'+esc(g.name)+'" style="color:'+color+';max-width:90px" onchange="groups['+gi+'].name=this.value;buildTable()" '+(appMode==='member'?'':'readonly')+'> '+countBadge+'<span class="raid-time-wrap"><span class="raid-time-label">出團時間</span><input class="raid-time-input" value="'+esc(g.raidTime||'')+'" placeholder="e.g. 6/12 22:00 &amp; 6/13 23:00" onchange="groups['+gi+'].raidTime=this.value;onRaidTimeChange()"></span></span><div id="avail-'+gi+'" style="display:flex;flex-wrap:wrap;gap:4px"></div></div></td>';
+    barTr.innerHTML='<td colspan="9" style="padding:0"><div class="group-avail-bar" style="border-color:'+color+'"><button class="group-collapse-btn" onclick="toggleGroup('+gi+')">'+(isCol?'▸':'▾')+'</button><span class="avail-label" style="color:'+color+'">'+emoji+'<input class="ef gname-ef" value="'+esc(g.name)+'" style="color:'+color+';max-width:90px" onchange="groups['+gi+'].name=this.value;markRosterDirty();buildTable();queueSave(500)" '+(appMode==='member'?'':'readonly')+'> '+countBadge+'<span class="raid-time-wrap"><span class="raid-time-label">出團時間</span><input class="raid-time-input" value="'+esc(g.raidTime||'')+'" placeholder="e.g. 6/12 22:00 &amp; 6/13 23:00" onchange="groups['+gi+'].raidTime=this.value;onRaidTimeChange()"></span></span><div id="avail-'+gi+'" style="display:flex;flex-wrap:wrap;gap:4px"></div></div></td>';
     if(appMode==='member'){barTr.addEventListener('dragover',e=>{e.preventDefault();barTr.classList.add('drag-over');});barTr.addEventListener('dragleave',()=>barTr.classList.remove('drag-over'));barTr.addEventListener('drop',e=>onDropGroup(e,gi));}
     tbody.appendChild(barTr);
     setTimeout(()=>{
@@ -762,7 +728,7 @@ function buildTable(){
         const dimClass=isDimmed?' dimmed':'';
         return '<td class="avail" id="cell-'+gi+'-'+mi+'-'+di+'"'+(canEditTime?' onclick="onCellTopClick(event,'+gi+','+mi+','+di+')"':'')+' ><div class="cell-inner '+dt+dimClass+'" style="pointer-events:none"><input class="time-ef" id="tef-'+gi+'-'+mi+'-'+di+'" value="'+esc(rowTimes[di])+'" onchange="onTimeChange('+gi+','+mi+','+di+',this.value)" onclick="event.stopPropagation()" style="pointer-events:none" readonly></div></td>';
       }).join('');
-      tr.innerHTML='<td class="cell-name"><div class="name-wrap">'+(isMem?'<span class="drag-handle">⠿</span>':'')+(isMem?'<button class="del-row-btn" onclick="delRow('+gi+','+mi+')" title="'+(isScat?'永久刪除':'移至散人')+'">✕</button>':'')+'<input class="ef name-ef" value="'+esc(m.name)+'" onchange="groups['+gi+'].members['+mi+'].name=this.value;buildTable()" '+(isMem?'':'readonly')+' style="'+(isMem?'':'pointer-events:none')+'"><input class="ef lv-ef" value="'+esc(m.lv)+'" placeholder="Lv" onchange="groups['+gi+'].members['+mi+'].lv=this.value" '+(isMem?'':'readonly')+' style="'+(isMem?'':'pointer-events:none')+'">'+(isMem?('<input class="ef job-ef" value="'+esc(m.job)+'" title="右鍵編輯職業備註" oncontextmenu="editJobNote(event,'+gi+','+mi+')" onchange="groups['+gi+'].members['+mi+'].job=this.value">'):('<span class="job-ef job-note-span" oncontextmenu="return false" style="display:inline-block" '+(m.jobNote?'data-note="'+esc(m.jobNote)+'" ':'')+'>'+esc(jobDisplay(m.job))+(m.jobNote?' <span class="job-note-badge" onclick="showJobNote(event,'+gi+','+mi+')">📝</span>':'')+'</span>'))+'</div></td>'+cells+'<td class="note-cell"><textarea class="note-ef" rows="2" onchange="groups['+gi+'].members['+mi+'].note=this.value;onRaidTimeChange()" '+(canEditTime||isMem?'':'readonly')+' style="'+(canEditTime||isMem?'':'pointer-events:none')+'">'+esc(m.note)+'</textarea></td>';
+      tr.innerHTML='<td class="cell-name"><div class="name-wrap">'+(isMem?'<span class="drag-handle">⠿</span>':'')+(isMem?'<button class="del-row-btn" onclick="delRow('+gi+','+mi+')" title="'+(isScat?'永久刪除':'移至散人')+'">✕</button>':'')+'<input class="ef name-ef" value="'+esc(m.name)+'" onchange="groups['+gi+'].members['+mi+'].name=this.value;markRosterDirty();buildTable();queueSave(500)" '+(isMem?'':'readonly')+' style="'+(isMem?'':'pointer-events:none')+'"><input class="ef lv-ef" value="'+esc(m.lv)+'" placeholder="Lv" onchange="groups['+gi+'].members['+mi+'].lv=this.value;markRosterDirty();queueSave(500)" '+(isMem?'':'readonly')+' style="'+(isMem?'':'pointer-events:none')+'">'+(isMem?('<input class="ef job-ef" value="'+esc(m.job)+'" title="右鍵編輯職業備註" oncontextmenu="editJobNote(event,'+gi+','+mi+')" onchange="groups['+gi+'].members['+mi+'].job=this.value;markRosterDirty();queueSave(500)">'):('<span class="job-ef job-note-span" oncontextmenu="return false" style="display:inline-block" '+(m.jobNote?'data-note="'+esc(m.jobNote)+'" ':'')+'>'+esc(jobDisplay(m.job))+(m.jobNote?' <span class="job-note-badge" onclick="showJobNote(event,'+gi+','+mi+')">📝</span>':'')+'</span>'))+'</div></td>'+cells+'<td class="note-cell"><textarea class="note-ef" rows="2" oninput="updateMemberNote('+gi+','+mi+',this.value)" onblur="updateMemberNote('+gi+','+mi+',this.value);saveData()" '+(canEditTime||isMem?'':'readonly')+' style="'+(canEditTime||isMem?'':'pointer-events:none')+'">'+esc(m.note)+'</textarea></td>';
       if(isMem){tr.setAttribute('draggable','true');tr.addEventListener('dragstart',e=>onDragStart(e,gi,mi));tr.addEventListener('dragover',e=>onDragOver(e));tr.addEventListener('dragleave',()=>tr.classList.remove('drag-over'));tr.addEventListener('drop',e=>onDrop(e,gi,mi));tr.addEventListener('dragend',()=>document.querySelectorAll('tr.dragging,tr.drag-over').forEach(r=>r.classList.remove('dragging','drag-over')));}
       tbody.appendChild(tr);
     });
@@ -812,6 +778,7 @@ function promoteScatter(){
 
 // ── Mode ──────────────────────────────────────────────────────────────────────
 function setMode(mode){
+  if(!_dataLoaded&&mode!=='view'){showToast('\u23F3 \u8CC7\u6599\u8B80\u53D6\u4E2D\uFF0C\u8ACB\u7A0D\u5019');return;}
   appMode=mode;
   const badge=document.getElementById('modeBadge');
   const bv=document.getElementById('btnView'),bt=document.getElementById('btnTime'),bm=document.getElementById('btnMember'),bs=document.getElementById('saveBtn');
@@ -876,22 +843,19 @@ function showSelectPlayerModal(){
   renderSpList('');
   setTimeout(()=>{const s=document.getElementById('spSearch');if(s)s.focus();},50);
 }
-function onPlayerSelected(gi,mi){closeSpModal();_clearPromptDone=false;_activePlayer={gi,mi};appMode='time';const badge=document.getElementById('modeBadge');badge.textContent='✏️ '+groups[gi].members[mi].name;badge.style.background='rgba(212,168,67,.15)';badge.style.color='var(--gold)';badge.style.borderColor='var(--gold)';document.getElementById('btnView').style.display='';document.getElementById('btnTime').style.display='none';document.getElementById('btnMember').style.display='';document.getElementById('saveBtn').style.display='';buildTable();}
+function onPlayerSelected(gi,mi){closeSpModal();_activePlayer={gi,mi};appMode='time';const badge=document.getElementById('modeBadge');badge.textContent='✏️ '+groups[gi].members[mi].name;badge.style.background='rgba(212,168,67,.15)';badge.style.color='var(--gold)';badge.style.borderColor='var(--gold)';document.getElementById('btnView').style.display='';document.getElementById('btnTime').style.display='none';document.getElementById('btnMember').style.display='';document.getElementById('saveBtn').style.display='';buildTable();}
 function closeSpModal(){const m=document.getElementById('spModal');if(m)m.style.display='none';}
 
 // Override setMode for time to show player select
 const _origSetMode=setMode;
 // Patch btnTime onclick
-document.getElementById('btnTime').onclick=function(){showSelectPlayerModal();};
+document.getElementById('btnTime').onclick=function(){if(!_dataLoaded){showToast('\u23F3 \u8CC7\u6599\u8B80\u53D6\u4E2D\uFF0C\u8ACB\u7A0D\u5019');return;}showSelectPlayerModal();};
 
 // ── Cell interaction ──────────────────────────────────────────────────────────
 function onCellTopClick(event,gi,mi,di){
   if(appMode==='view') return;
   event.stopPropagation();
-  if(_clearPromptDone){activateCell(gi,mi,di);return;}
-  _clearPromptDone=true;_pendingUnlock={gi,mi,di};
-  if(isClearWindowOpen()&&!hasClearBeenUsed()) showClearModal(gi,groups[gi]?groups[gi].name:'你的團隊');
-  else activateCell(gi,mi,di);
+  activateCell(gi,mi,di);
 }
 function activateCell(gi,mi,di){
   const inp=document.getElementById('tef-'+gi+'-'+mi+'-'+di);
@@ -900,7 +864,7 @@ function activateCell(gi,mi,di){
 }
 function onTimeChange(gi,mi,di,raw){applyTimeChange(gi,mi,di,raw,null);}
 function applyTimeChange(gi,mi,di,raw,forceType){
-  const val=(forceType!==null&&forceType!==undefined)?raw:((String(raw||'').trim()==='?'||String(raw||'').trim()==='?')?'':normalizeTime(raw));
+  const val=(forceType!==null&&forceType!==undefined)?raw:((String(raw||'').trim()==='?'||String(raw||'').trim()==='\uFF1F')?'':normalizeTime(raw));
   const mem=groups[gi].members[mi];
   const wd=getMemberWeekData(mem,currentWeekView);
   wd.times[di]=val===''?'—':val;
@@ -909,8 +873,9 @@ function applyTimeChange(gi,mi,di,raw,forceType){
   else if(val==='整天'||val==='可') wd.days[di]='all-day';
   else wd.days[di]='partial';
   if(currentWeekView==='this'){mem.days=wd.days;mem.times=wd.times;}
+  markMemberDirty(gi,mi);
   buildTable();
-  clearTimeout(onTimeChange._t);onTimeChange._t=setTimeout(saveData,1500);
+  queueSave(900);
 }
 
 // ── Normalize time ────────────────────────────────────────────────────────────
@@ -977,9 +942,9 @@ function clearTeamTimes(gi){
 // ── CRUD ──────────────────────────────────────────────────────────────────────
 function delRow(gi,mi){
   const last=groups.length-1;
-  if(gi!==last){groups[last].members.push(groups[gi].members.splice(mi,1)[0]);buildTable();return;}
-  if(!confirm('永久刪除「'+groups[gi].members[mi].name+'」？')) return;
-  groups[gi].members.splice(mi,1);buildTable();
+  if(gi!==last){groups[last].members.push(groups[gi].members.splice(mi,1)[0]);markRosterDirty();buildTable();queueSave(300);return;}
+  if(!confirm('\u6C38\u4E45\u522A\u9664\u300C'+groups[gi].members[mi].name+'\u300D\uFF1F')) return;
+  groups[gi].members.splice(mi,1);markRosterDirty();buildTable();queueSave(300);
 }
 function addMemberToGroup(gi){groups[gi].members.push({name:'新成員',lv:'',job:'職業',days:Array(7).fill('empty'),times:Array(7).fill('—'),note:''});buildTable();}
 
@@ -987,11 +952,11 @@ function addMemberToGroup(gi){groups[gi].members.push({name:'新成員',lv:'',jo
 let _drag=null;
 function onDragStart(e,gi,mi){_drag={gi,mi};e.dataTransfer.effectAllowed='move';setTimeout(()=>e.target.closest('tr').classList.add('dragging'),0);}
 function onDragOver(e){e.preventDefault();const tr=e.target.closest('tr.member');if(!tr)return;document.querySelectorAll('tr.drag-over').forEach(r=>r.classList.remove('drag-over'));tr.classList.add('drag-over');}
-function onDrop(e,gi,mi){e.preventDefault();if(!_drag)return;const[mv]=groups[_drag.gi].members.splice(_drag.mi,1);groups[gi].members.splice(mi,0,mv);_drag=null;buildTable();}
-function onDropGroup(e,gi){e.preventDefault();document.querySelectorAll('tr.drag-over').forEach(r=>r.classList.remove('drag-over'));if(!_drag)return;const[mv]=groups[_drag.gi].members.splice(_drag.mi,1);groups[gi].members.push(mv);_drag=null;buildTable();}
+function onDrop(e,gi,mi){e.preventDefault();if(!_drag)return;const[mv]=groups[_drag.gi].members.splice(_drag.mi,1);groups[gi].members.splice(mi,0,mv);_drag=null;markRosterDirty();buildTable();queueSave(300);}
+function onDropGroup(e,gi){e.preventDefault();document.querySelectorAll('tr.drag-over').forEach(r=>r.classList.remove('drag-over'));if(!_drag)return;const[mv]=groups[_drag.gi].members.splice(_drag.mi,1);groups[gi].members.push(mv);_drag=null;markRosterDirty();buildTable();queueSave(300);}
 
 // ── Save/Load ─────────────────────────────────────────────────────────────────
-function onRaidTimeChange(){clearTimeout(onRaidTimeChange._t);onRaidTimeChange._t=setTimeout(saveData,1500);}
+function onRaidTimeChange(){markRosterDirty();queueSave(700);}
 async function saveData(){
   showToast('⏳ 儲存中…','#8bb8f0');
   _localVersion=Date.now();
@@ -1077,16 +1042,18 @@ async function loadData(){
     showSyncStatus('error');
     setTimeout(saveData,1000);
   }
+  _dataLoaded=true;
   updateDateHeader();updateWeekTabs();buildTable();
   setTimeout(autoRefresh,300000);
 }
 async function autoRefresh(){
-  if(appMode!=='view'){setTimeout(autoRefresh,300000);return;}
+  if(appMode!=='view'||_dirtyMembers.size||_rosterDirty||_saveInFlight){setTimeout(autoRefresh,300000);return;}
   try{
     const r=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'loadSchedule'})});
     const out=await r.json();
     if(out.ok && out.data && isValidRemoteData(normalizeRemoteData(out.data)) && (out.data._v||0)>=_localVersion){
       mergeRemoteData(normalizeRemoteData(out.data).groups);
+      _localVersion=out.data._v||_localVersion;
       buildTable();
     }
     showSyncStatus('ok');
@@ -1116,6 +1083,7 @@ function populateJobDropdown(){
   });
 }
 function showSignupModal(){
+  if(!_dataLoaded){showToast('\u23F3 \u8CC7\u6599\u8B80\u53D6\u4E2D\uFF0C\u8ACB\u7A0D\u5019');return;}
   populateJobDropdown();
   const c=document.getElementById('su-days');c.innerHTML='';
   DAYS_LABEL.forEach((label,di)=>{const p=label.split(' ');const w=document.createElement('div');w.innerHTML='<button class="su-day-btn" id="su-btn-'+di+'" onclick="toggleSuDay('+di+')">'+p[0]+' '+p[1]+'</button><input class="su-day-input" id="su-time-'+di+'" placeholder="e.g. 19:00後 或 整天">';c.appendChild(w);});
@@ -1139,24 +1107,32 @@ function submitSignup(){
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 // Force-overwrite cloud with the code's built-in roster (DEFAULT_GROUPS)
 function resetRoster(){
-  if(!confirm('確定要用程式內建的最新名單覆蓋雲端嗎？\n（會清掉雲端目前的分團，但保留各人已填的時間）')) return;
-  // Rebuild groups from DEFAULT_GROUPS, but keep any time data that matches by name
-  const oldByName={};
-  groups.forEach(g=>g.members.forEach(m=>{oldByName[m.name]={days:m.days,times:m.times,note:m.note,nextWeek:m.nextWeek,jobNote:m.jobNote};}));
-  groups=JSON.parse(JSON.stringify(DEFAULT_GROUPS));
-  groups.forEach(g=>g.members.forEach(m=>{
-    const o=oldByName[m.name];
-    if(o){
-      if(o.days)m.days=o.days; if(o.times)m.times=o.times;
-      if(o.note!==undefined)m.note=o.note; if(o.nextWeek)m.nextWeek=o.nextWeek;
-      // jobNote: prefer code's value, fall back to old
-      if(m.jobNote===undefined&&o.jobNote)m.jobNote=o.jobNote;
-    }
+  if(!confirm('\u78BA\u5B9A\u8981\u7528\u7A0B\u5F0F\u5167\u5EFA\u7684\u540D\u55AE\u91CD\u6574\u5718\u968A\u55CE\uFF1F\n\u6240\u6709\u5DF2\u5132\u5B58\u7684\u65E5\u671F\u9031\u8CC7\u6599\u6703\u4FDD\u7559\u3002')) return;
+  const exact=new Map(),byName=new Map();
+  groups.forEach(g=>(g.members||[]).forEach(m=>{
+    prepareMemberWeekStorage(m);
+    const saved=JSON.parse(JSON.stringify({days:m.days,times:m.times,note:m.note,nextWeek:m.nextWeek,weeks:m.weeks,jobNote:m.jobNote}));
+    exact.set(g.name+'\\0'+m.name,saved);
+    if(!byName.has(m.name))byName.set(m.name,[]);
+    byName.get(m.name).push(saved);
   }));
-  _localVersion=Date.now();
-  buildTable();
-  saveData();
-  showToast('♻️ 名單已重置並覆蓋雲端！');
+  groups=JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+  groups.forEach(g=>(g.members||[]).forEach(m=>{
+    const same=exact.get(g.name+'\\0'+m.name);
+    const list=byName.get(m.name)||[];
+    const old=same||(list.length===1?list[0]:null);
+    if(old){
+      if(old.weeks)m.weeks=JSON.parse(JSON.stringify(old.weeks));
+      if(old.days)m.days=old.days.slice();
+      if(old.times)m.times=old.times.slice();
+      if(old.note!==undefined)m.note=old.note;
+      if(old.nextWeek)m.nextWeek=JSON.parse(JSON.stringify(old.nextWeek));
+      if(m.jobNote===undefined&&old.jobNote)m.jobNote=old.jobNote;
+    }
+    prepareMemberWeekStorage(m);
+  }));
+  markRosterDirty();buildTable();saveData();
+  showToast('\u267B\uFE0F \u540D\u55AE\u5DF2\u91CD\u6574\uFF0C\u6240\u6709\u9031\u8CC7\u6599\u5DF2\u4FDD\u7559');
 }
 // Show job note on tap (mobile) — toggle a floating tip
 function showJobNote(ev,gi,mi){
@@ -1181,7 +1157,7 @@ function editJobNote(ev,gi,mi){
   const v=prompt('輸入職業備註（例：煙30）。留空可清除：',cur);
   if(v===null) return;
   groups[gi].members[mi].jobNote=v.trim();
-  saveData();
+  markMemberDirty(gi,mi);saveData();
   buildTable();
 }
 // Simplify job name for table display (data keeps full name)
@@ -1193,12 +1169,28 @@ function jobDisplay(job){
 // ── Start ─────────────────────────────────────────────────────────────────────
 // Default week by weekday: Sun-Wed -> next, Thu-Sat -> this
 
+// Safe incremental saving: time/note changes patch only the edited member.
+let _dataLoaded=false;
+const _dirtyMembers=new Map();
+let _rosterDirty=false,_saveInFlight=false,_saveQueued=false,_saveTimer=null;
+function memberDirtyKey(groupName,memberName){return groupName+'\\0'+memberName;}
+function markMemberDirty(gi,mi){
+  const g=groups[gi],m=g&&g.members?g.members[mi]:null;
+  if(g&&m)_dirtyMembers.set(memberDirtyKey(g.name,m.name),{group:g.name,member:m.name});
+}
+function markRosterDirty(){_rosterDirty=true;}
+function queueSave(ms){clearTimeout(_saveTimer);_saveTimer=setTimeout(saveData,ms||500);}
+function updateMemberNote(gi,mi,value){
+  const m=groups[gi].members[mi],wd=getMemberWeekData(m,currentWeekView);
+  wd.note=String(value||'');m.note=wd.note;markMemberDirty(gi,mi);queueSave(700);
+}
+
 // Week storage by actual date. This keeps 6/18-6/24 separate from 6/25-7/1.
 function dateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function weekDateForView(week){return week==='next'?getNextThursday():getThisThursday();}
 function weekKeyForView(week){return dateKey(weekDateForView(week));}
 function previousWeekKey(){const d=getThisThursday();d.setDate(d.getDate()-7);return dateKey(d);}
-function blankWeekData(){return{days:Array(7).fill('empty'),times:Array(7).fill('?'),note:''};}
+function blankWeekData(){return{days:Array(7).fill('empty'),times:Array(7).fill('\u2014'),note:''};}
 function normalizeWeekData(w){
   if(!w||typeof w!=='object') w={};
   let days=Array.isArray(w.days)?w.days.slice():String(w.days||'').trim().split(/\s+/).filter(Boolean);
@@ -1215,22 +1207,63 @@ function normalizeWeekData(w){
   return{days,times,note:w.note||''};
 }
 function cloneWeekData(w){const n=normalizeWeekData(w);return{days:n.days.slice(),times:n.times.slice(),note:n.note||''};}
-function ensureMemberWeeks(m){if(!m)return{};const hadWeeks=m.weeks&&typeof m.weeks==='object'&&!Array.isArray(m.weeks)&&Object.keys(m.weeks).length>0;if(!hadWeeks)m.weeks={};else Object.keys(m.weeks).forEach(k=>{m.weeks[k]=normalizeWeekData(m.weeks[k]);});if(!hadWeeks){const prevKey=previousWeekKey();const thisKey=weekKeyForView('this');if(Array.isArray(m.days)||Array.isArray(m.times))m.weeks[prevKey]=normalizeWeekData({days:m.days,times:m.times,note:m.note||''});if(m.nextWeek&&typeof m.nextWeek==='object')m.weeks[thisKey]=normalizeWeekData(m.nextWeek);else if(!m.weeks[thisKey])m.weeks[thisKey]=blankWeekData();}return m.weeks;}
+function ensureMemberWeeks(m){if(!m)return{};const hadWeeks=m.weeks&&typeof m.weeks==='object'&&!Array.isArray(m.weeks)&&Object.keys(m.weeks).length>0;if(!hadWeeks)m.weeks={};else Object.keys(m.weeks).forEach(k=>{m.weeks[k]=normalizeWeekData(m.weeks[k]);});if(!hadWeeks){const thisKey=weekKeyForView('this'),nextKey=weekKeyForView('next');if(Array.isArray(m.days)||Array.isArray(m.times))m.weeks[thisKey]=normalizeWeekData({days:m.days,times:m.times,note:m.note||''});else m.weeks[thisKey]=blankWeekData();if(m.nextWeek&&typeof m.nextWeek==='object')m.weeks[nextKey]=normalizeWeekData(m.nextWeek);}return m.weeks;}
 function getMemberWeekData(m,week){const key=weekKeyForView(week);ensureMemberWeeks(m);if(!m.weeks[key])m.weeks[key]=blankWeekData();m.weeks[key]=normalizeWeekData(m.weeks[key]);return m.weeks[key];}
 function syncLegacyWeekFields(m,view){if(!m)return;ensureMemberWeeks(m);const viewData=cloneWeekData(m.weeks[weekKeyForView(view||currentWeekView)]||blankWeekData());const nextData=cloneWeekData(m.weeks[weekKeyForView('next')]||blankWeekData());m.days=viewData.days;m.times=viewData.times;m.note=viewData.note||'';m.nextWeek=nextData;}
 function prepareMemberWeekStorage(m){ensureMemberWeeks(m);syncLegacyWeekFields(m,currentWeekView);return m;}
 function prepareAllWeekStorage(){groups.forEach(g=>(g.members||[]).forEach(prepareMemberWeekStorage));}
 const _weekFixOriginalNormalizeRemoteData=normalizeRemoteData;
 normalizeRemoteData=function(d){d=_weekFixOriginalNormalizeRemoteData(d);if(d&&Array.isArray(d.groups))d.groups.forEach(g=>(g.members||[]).filter(m=>m&&m.name).forEach(m=>{ensureMemberWeeks(m);syncLegacyWeekFields(m,currentWeekView);}));return d;};
-mergeRemoteData=function(rg){groups=JSON.parse(JSON.stringify(DEFAULT_GROUPS));rg.forEach(r=>{const li=groups.findIndex(g=>g.name===r.name);if(li>=0){if(r.raidTime!==undefined)groups[li].raidTime=r.raidTime;(r.members||[]).filter(rm=>rm&&rm.name).forEach(rm=>{const mi=groups[li].members.findIndex(m=>m&&m.name===rm.name);if(mi>=0){if(rm.lv!==undefined)groups[li].members[mi].lv=rm.lv;if(rm.job!==undefined)groups[li].members[mi].job=rm.job;if(rm.jobNote!==undefined)groups[li].members[mi].jobNote=rm.jobNote;if(rm.note!==undefined)groups[li].members[mi].note=rm.note;if(rm.days&&rm.days.length===7)groups[li].members[mi].days=rm.days;if(rm.times&&rm.times.length===7)groups[li].members[mi].times=rm.times;if(rm.nextWeek&&typeof rm.nextWeek==='object')groups[li].members[mi].nextWeek=rm.nextWeek;if(rm.weeks&&typeof rm.weeks==='object')groups[li].members[mi].weeks=rm.weeks;prepareMemberWeekStorage(groups[li].members[mi]);}else{prepareMemberWeekStorage(rm);groups[li].members.push(rm);}});}else if(r.name&&r.name!=='??'){(r.members||[]).forEach(prepareMemberWeekStorage);groups.push(r);}});};
+mergeRemoteData=function(rg){groups=JSON.parse(JSON.stringify(DEFAULT_GROUPS));rg.forEach(r=>{const li=groups.findIndex(g=>g.name===r.name);if(li>=0){if(r.raidTime!==undefined)groups[li].raidTime=r.raidTime;(r.members||[]).filter(rm=>rm&&rm.name).forEach(rm=>{const mi=groups[li].members.findIndex(m=>m&&m.name===rm.name);if(mi>=0){if(rm.lv!==undefined)groups[li].members[mi].lv=rm.lv;if(rm.job!==undefined)groups[li].members[mi].job=rm.job;if(rm.jobNote!==undefined)groups[li].members[mi].jobNote=rm.jobNote;if(rm.note!==undefined)groups[li].members[mi].note=rm.note;if(rm.days&&rm.days.length===7)groups[li].members[mi].days=rm.days;if(rm.times&&rm.times.length===7)groups[li].members[mi].times=rm.times;if(rm.nextWeek&&typeof rm.nextWeek==='object')groups[li].members[mi].nextWeek=rm.nextWeek;if(rm.weeks&&typeof rm.weeks==='object')groups[li].members[mi].weeks=rm.weeks;prepareMemberWeekStorage(groups[li].members[mi]);}else{prepareMemberWeekStorage(rm);groups[li].members.push(rm);}});}else if(r.name&&r.name!=='\u6563\u4EBA'){(r.members||[]).forEach(prepareMemberWeekStorage);groups.push(r);}});};
 const _weekFixOriginalBuildTable=buildTable;
 buildTable=function(){prepareAllWeekStorage();return _weekFixOriginalBuildTable();};
-getFilledMembers=function(gi){const g=groups[gi];if(!g||!Array.isArray(g.members))return[];return g.members.filter(m=>{const d=getMemberWeekData(m,currentWeekView).days;return Array.isArray(d)&&d.some(x=>x!=='empty');});};
-clearTeamTimes=function(gi){const filled=new Set(getFilledMembers(gi).map(m=>m.name));groups[gi].members.forEach(m=>{if(!_isFirstClearer&&filled.has(m.name))return;const wd=getMemberWeekData(m,currentWeekView);wd.days=Array(7).fill('empty');wd.times=Array(7).fill('?');m.weeks[weekKeyForView(currentWeekView)]=wd;syncLegacyWeekFields(m,currentWeekView);});markClearUsed();buildTable();if(_pendingUnlock){activateCell(_pendingUnlock.gi,_pendingUnlock.mi,_pendingUnlock.di);_pendingUnlock=null;}if(_pendingCycle){doCycleType(_pendingCycle.gi,_pendingCycle.mi,_pendingCycle.di);_pendingCycle=null;}saveData();showToast('? ???'+groups[gi].name+'???');};
-addMemberToGroup=function(gi){const m={name:'???',lv:'',job:'??',days:Array(7).fill('empty'),times:Array(7).fill('?'),note:''};prepareMemberWeekStorage(m);groups[gi].members.push(m);buildTable();};
-saveData=async function(){showToast('? ????','#8bb8f0');_localVersion=Date.now();prepareAllWeekStorage();const slim=groups.filter(g=>g&&g.name).map(g=>({name:g.name,colorIdx:g.colorIdx,raidTime:g.raidTime||'',members:(g.members||[]).filter(m=>m&&m.name).map(m=>{ensureMemberWeeks(m);const thisData=cloneWeekData(m.weeks[weekKeyForView('this')]||blankWeekData());const nextData=cloneWeekData(m.weeks[weekKeyForView('next')]||blankWeekData());return{name:m.name,lv:m.lv||'',job:m.job||'',jobNote:m.jobNote||'',days:thisData.days,times:thisData.times,note:thisData.note||'',nextWeek:nextData,weeks:m.weeks};})}));const payload={groups:slim,_v:_localVersion};try{localStorage.setItem('raidSchedule_google_v2',JSON.stringify(payload));}catch(e){}try{const r=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'saveSchedule',data:payload})});const out=await r.json();if(!out.ok)throw new Error(out.error||'save failed');showToast('? ???????? Google ??');showSyncStatus('ok');}catch(e){showToast('?? ??????Google ?????'+e.message+'?','#e8c56a');showSyncStatus('error');}};
-submitSignup=function(){const name=document.getElementById('su-name').value.trim(),lv=document.getElementById('su-lv').value.trim(),job=document.getElementById('su-job').value.trim(),err=document.getElementById('su-err');if(!name){err.textContent='???????';err.style.display='block';return;}if(!job){err.textContent='?????';err.style.display='block';return;}const days=Array(7).fill('empty'),times=Array(7).fill('?');let hasDay=false;DAYS_LABEL.forEach((_,di)=>{const b=document.getElementById('su-btn-'+di),i=document.getElementById('su-time-'+di);if(b&&b.classList.contains('active')){hasDay=true;const v=i?normalizeTime(i.value.trim())||'??':'??';times[di]=v;days[di]=v==='?'?'no':v==='??'?'all-day':'partial';}});if(!hasDay){err.textContent='?????????';err.style.display='block';return;}const member={name,lv,job,days:Array(7).fill('empty'),times:Array(7).fill('?'),note:'',weeks:{}};member.weeks[weekKeyForView(currentWeekView)]={days,times,note:''};syncLegacyWeekFields(member,currentWeekView);groups[groups.length-1].members.push(member);closeSignupModal();saveData();buildTable();showToast('? ???????????');};
-scheduleWeekRefresh=function(){const now=new Date(),next=new Date(now);next.setHours(23,0,1,0);while(next<=now||next.getDay()!==3){next.setDate(next.getDate()+1);next.setHours(23,0,1,0);}setTimeout(()=>{prepareAllWeekStorage();updateDateHeader();buildTable();saveData();showToast('Week changed. New week is ready.');scheduleWeekRefresh();},next-now);};
+addMemberToGroup=function(gi){
+  const m={name:'\u65B0\u6210\u54E1',lv:'',job:'\u8077\u696D',days:Array(7).fill('empty'),times:Array(7).fill('\u2014'),note:'',weeks:{}};
+  prepareMemberWeekStorage(m);groups[gi].members.push(m);markRosterDirty();buildTable();queueSave(300);
+};
+saveData=async function(){
+  if(_saveInFlight){_saveQueued=true;return;}
+  _saveInFlight=true;
+  const dirtySnapshot=Array.from(_dirtyMembers.values());
+  const rosterSnapshot=_rosterDirty;
+  showToast('\u23F3 \u5132\u5B58\u4E2D\u2026','#8bb8f0');
+  prepareAllWeekStorage();
+  const slim=groups.filter(g=>g&&g.name).map(g=>({name:g.name,colorIdx:g.colorIdx,raidTime:g.raidTime||'',members:(g.members||[]).filter(m=>m&&m.name).map(m=>{
+    ensureMemberWeeks(m);
+    const thisData=cloneWeekData(m.weeks[weekKeyForView('this')]||blankWeekData());
+    const nextData=cloneWeekData(m.weeks[weekKeyForView('next')]||blankWeekData());
+    return{name:m.name,lv:m.lv||'',job:m.job||'',jobNote:m.jobNote||'',days:thisData.days,times:thisData.times,note:thisData.note||'',nextWeek:nextData,weeks:m.weeks};
+  })}));
+  const payload={groups:slim,_v:Date.now()};
+  try{localStorage.setItem('raidSchedule_google_v2',JSON.stringify(payload));}catch(e){}
+  try{
+    const r=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'saveSchedule',baseVersion:_localVersion,data:payload,dirtyMembers:dirtySnapshot,rosterDirty:rosterSnapshot})});
+    const out=await r.json();if(!out.ok){if(out.code==='CONFLICT')showToast('\u26A0\uFE0F \u96F2\u7AEF\u8CC7\u6599\u5DF2\u66F4\u65B0\uFF0C\u8ACB\u91CD\u65B0\u6574\u7406\u5F8C\u518D\u8ABF\u6574\u540D\u55AE','#e8c56a');throw new Error(out.error||'save failed');}
+    _localVersion=out.version||payload._v;
+    if(!_saveQueued){dirtySnapshot.forEach(x=>_dirtyMembers.delete(memberDirtyKey(x.group,x.member)));if(rosterSnapshot)_rosterDirty=false;}
+    showToast('\u2705 \u5132\u5B58\u6210\u529F\uFF0C\u5DF2\u5408\u4F75\u5230 Google \u96F2\u7AEF');showSyncStatus('ok');
+  }catch(e){showToast('\u26A0\uFE0F \u96F2\u7AEF\u5132\u5B58\u5931\u6557\uFF1A'+e.message,'#e8c56a');showSyncStatus('error');}
+  finally{_saveInFlight=false;if(_saveQueued){_saveQueued=false;queueSave(50);}}
+};
+submitSignup=function(){
+  const name=document.getElementById('su-name').value.trim(),lv=document.getElementById('su-lv').value.trim(),job=document.getElementById('su-job').value.trim(),err=document.getElementById('su-err');
+  if(!name){err.textContent='\u8ACB\u586B\u5BEB\u904A\u6232\u540D\u7A31';err.style.display='block';return;}
+  if(!job){err.textContent='\u8ACB\u9078\u64C7\u8077\u696D';err.style.display='block';return;}
+  const days=Array(7).fill('empty'),times=Array(7).fill('\u2014');let hasDay=false;
+  DAYS_LABEL.forEach((_,di)=>{const b=document.getElementById('su-btn-'+di),i=document.getElementById('su-time-'+di);if(b&&b.classList.contains('active')){hasDay=true;const v=i?normalizeTime(i.value.trim())||'\u6574\u5929':'\u6574\u5929';times[di]=v;days[di]=v==='\u2717'?'no':v==='\u6574\u5929'?'all-day':'partial';}});
+  if(!hasDay){err.textContent='\u8ACB\u81F3\u5C11\u9078\u64C7\u4E00\u500B\u65E5\u671F';err.style.display='block';return;}
+  const member={name,lv,job,days:Array(7).fill('empty'),times:Array(7).fill('\u2014'),note:'',weeks:{}};
+  member.weeks[weekKeyForView(currentWeekView)]={days,times,note:''};syncLegacyWeekFields(member,currentWeekView);
+  groups[groups.length-1].members.push(member);markRosterDirty();closeSignupModal();saveData();buildTable();showToast('\u2705 \u5DF2\u5831\u540D\u5B8C\u6210\uFF01\u8ACB\u7B49\u5F85\u7DE8\u7D44');
+};
+scheduleWeekRefresh=function(){
+  const now=new Date(),next=new Date(now);next.setDate(next.getDate()+1);next.setHours(0,0,1,0);
+  setTimeout(()=>{
+    currentWeekView=defaultWeekView();setActiveTab(currentWeekView);
+    updateDateHeader();updateWeekTabs();buildTable();
+    showToast('\uD83D\uDCC5 \u65E5\u671F\u5DF2\u66F4\u65B0');scheduleWeekRefresh();
+  },Math.max(1000,next-now));
+};
 
 currentWeekView = defaultWeekView();
 setActiveTab(currentWeekView);
