@@ -100,7 +100,7 @@ td.avail{text-align:center;padding:0;min-width:88px;vertical-align:middle}
 .cell-inner.dimmed{opacity:.32;filter:grayscale(.7)}
 tr.member.dimmed-row .cell-name{opacity:.4}
 tr.member.active-row{outline:2px solid var(--gold);outline-offset:-2px;background:rgba(212,168,67,.06)}
-.time-ef{background:transparent;border:none;outline:none;font-family:'Noto Sans TC',sans-serif;font-size:.68rem;color:inherit;width:100%;text-align:center;pointer-events:none}
+.time-ef{background:transparent;border:none;outline:none;font-family:'Noto Sans TC',sans-serif;font-size:.68rem;color:inherit;width:100%;text-align:center;pointer-events:auto}tr.active-row .cell-inner,tr.active-row .time-ef,tr.active-row .note-ef{pointer-events:auto!important;cursor:text}
 td.note-cell{padding:2px 8px 2px 4px;min-width:140px;max-width:200px;white-space:normal;word-break:break-all;font-size:.68rem;color:var(--muted);vertical-align:middle;line-height:1.4}
 .note-ef{background:transparent;border:none;outline:none;resize:none;font-family:'Noto Sans TC',sans-serif;font-size:.68rem;color:var(--muted);width:100%;min-height:28px;line-height:1.4}
 /* del/drag */
@@ -726,7 +726,7 @@ function buildTable(){
       const cells=rowDays.map((type,di)=>{
         const dt=type==='empty'?'no':type;
         const dimClass=isDimmed?' dimmed':'';
-        return '<td class="avail" id="cell-'+gi+'-'+mi+'-'+di+'"'+(canEditTime?' onclick="onCellTopClick(event,'+gi+','+mi+','+di+')"':'')+' ><div class="cell-inner '+dt+dimClass+'" style="pointer-events:none"><input class="time-ef" id="tef-'+gi+'-'+mi+'-'+di+'" value="'+esc(rowTimes[di])+'" onchange="onTimeChange('+gi+','+mi+','+di+',this.value)" onclick="event.stopPropagation()" style="'+(canEditTime?'':'pointer-events:none')+'" '+(canEditTime?'':'readonly')+'></div></td>';
+        return '<td class="avail" id="cell-'+gi+'-'+mi+'-'+di+'"'+(canEditTime?' onclick="onCellTopClick(event,'+gi+','+mi+','+di+')"':'')+' ><div class="cell-inner '+dt+dimClass+'" style="'+(canEditTime?'pointer-events:auto':'pointer-events:none')+'"><input class="time-ef" id="tef-'+gi+'-'+mi+'-'+di+'" value="'+esc(rowTimes[di])+'" onchange="onTimeChange('+gi+','+mi+','+di+',this.value)" onclick="event.stopPropagation()" style="'+(canEditTime?'':'pointer-events:none')+'" '+(canEditTime?'':'readonly')+'></div></td>';
       }).join('');
       tr.innerHTML='<td class="cell-name"><div class="name-wrap">'+(isMem?'<span class="drag-handle">⠿</span>':'')+(isMem?'<button class="del-row-btn" onclick="delRow('+gi+','+mi+')" title="'+(isScat?'永久刪除':'移至散人')+'">✕</button>':'')+'<input class="ef name-ef" value="'+esc(m.name)+'" onchange="groups['+gi+'].members['+mi+'].name=this.value;markRosterDirty();buildTable();queueSave(500)" '+(isMem?'':'readonly')+' style="'+(isMem?'':'pointer-events:none')+'"><input class="ef lv-ef" value="'+esc(m.lv)+'" placeholder="Lv" onchange="groups['+gi+'].members['+mi+'].lv=this.value;markRosterDirty();queueSave(500)" '+(isMem?'':'readonly')+' style="'+(isMem?'':'pointer-events:none')+'">'+(isMem?('<input class="ef job-ef" value="'+esc(m.job)+'" title="右鍵編輯職業備註" oncontextmenu="editJobNote(event,'+gi+','+mi+')" onchange="groups['+gi+'].members['+mi+'].job=this.value;markRosterDirty();queueSave(500)">'):('<span class="job-ef job-note-span" oncontextmenu="return false" style="display:inline-block" '+(m.jobNote?'data-note="'+esc(m.jobNote)+'" ':'')+'>'+esc(jobDisplay(m.job))+(m.jobNote?' <span class="job-note-badge" onclick="showJobNote(event,'+gi+','+mi+')">📝</span>':'')+'</span>'))+'</div></td>'+cells+'<td class="note-cell"><textarea class="note-ef" rows="2" oninput="updateMemberNote('+gi+','+mi+',this.value)" onblur="updateMemberNote('+gi+','+mi+',this.value);saveData()" '+(canEditTime||isMem?'':'readonly')+' style="'+(canEditTime||isMem?'':'pointer-events:none')+'">'+esc(m.note)+'</textarea></td>';
       if(isMem){tr.setAttribute('draggable','true');tr.addEventListener('dragstart',e=>onDragStart(e,gi,mi));tr.addEventListener('dragover',e=>onDragOver(e));tr.addEventListener('dragleave',()=>tr.classList.remove('drag-over'));tr.addEventListener('drop',e=>onDrop(e,gi,mi));tr.addEventListener('dragend',()=>document.querySelectorAll('tr.dragging,tr.drag-over').forEach(r=>r.classList.remove('dragging','drag-over')));}
@@ -843,7 +843,8 @@ function showSelectPlayerModal(){
   renderSpList('');
   setTimeout(()=>{const s=document.getElementById('spSearch');if(s)s.focus();},50);
 }
-function onPlayerSelected(gi,mi){closeSpModal();_activePlayer={gi,mi};appMode='time';const badge=document.getElementById('modeBadge');badge.textContent='✏️ '+groups[gi].members[mi].name;badge.style.background='rgba(212,168,67,.15)';badge.style.color='var(--gold)';badge.style.borderColor='var(--gold)';document.getElementById('btnView').style.display='';document.getElementById('btnTime').style.display='none';document.getElementById('btnMember').style.display='';document.getElementById('saveBtn').style.display='';buildTable();}
+function onPlayerSelected(gi,mi){closeSpModal();_activePlayer={gi,mi};appMode='time';const badge=document.getElementById('modeBadge');badge.textContent='✏️ '+groups[gi].members[mi].name;badge.style.background='rgba(212,168,67,.15)';badge.style.color='var(--gold)';badge.style.borderColor='var(--gold)';document.getElementById('btnView').style.display='';document.getElementById('btnTime').style.display='none';document.getElementById('btnMember').style.display='';document.getElementById('saveBtn').style.display='';buildTable();setTimeout(unlockActivePlayerInputs,0);}
+function unlockActivePlayerInputs(){const row=document.querySelector('tr.active-row');if(!row)return;row.querySelectorAll('input.time-ef,textarea.note-ef').forEach(el=>{el.readOnly=false;el.removeAttribute('readonly');el.style.pointerEvents='auto';});row.querySelectorAll('.cell-inner').forEach(el=>{el.style.pointerEvents='auto';});}
 function closeSpModal(){const m=document.getElementById('spModal');if(m)m.style.display='none';}
 
 // Override setMode for time to show player select
@@ -860,7 +861,7 @@ function onCellTopClick(event,gi,mi,di){
 function activateCell(gi,mi,di){
   const inp=document.getElementById('tef-'+gi+'-'+mi+'-'+di);
   if(!inp) return;
-  inp.style.pointerEvents='';inp.removeAttribute('readonly');inp.focus();inp.select();
+  inp.style.pointerEvents='auto';inp.readOnly=false;inp.removeAttribute('readonly');inp.focus();inp.select();
 }
 function onTimeChange(gi,mi,di,raw){applyTimeChange(gi,mi,di,raw,null);}
 function applyTimeChange(gi,mi,di,raw,forceType){
